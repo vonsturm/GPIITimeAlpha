@@ -20,7 +20,9 @@ int main()
 	BCLog::OpenLog( "log.txt", BCLog::detail, BCLog::detail );
 
 	// create new TimeAlpha object
-	TimeAlpha * m = new TimeAlpha( "TimeAlpha", "run0053-run0064-phy-analysis.txt" );
+	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
+	SetNBinsHistograms( 10, 0., 200. );
+	ReadData( "run0053-phy-analysis.txt" );
 	
 	// set precision
 	m -> MCMCSetPrecision(BCEngineMCMC::kMedium);

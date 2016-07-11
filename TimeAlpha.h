@@ -22,10 +22,17 @@ class TimeAlpha : public BCModel {
  public:
 
 	// Constructor and destructor
-	TimeAlpha( const char * name = "TimeAlpha", std::string keylist = "default.txt" );
+	TimeAlpha( const char * name = "TimeAlpha" );
 	~TimeAlpha();
 
 	int ReadData( std::string keylist );
+
+	void SetNBinsHistograms( int n, double min, double max )
+	{
+		fNBins = n;
+		fHMinimum = min;
+		fHMaximum = max;
+	};
 
 	void SetNDetectors( int n ){ fNDetectors = n; };
 	int GetNDetectors(){ return fNDetectors; };
@@ -38,6 +45,9 @@ class TimeAlpha : public BCModel {
 
 	int fNDetectors = 40;
 
+	int fNBins;
+	double fHMaximum, fHMinimum;
+
 	// Data arrays with time distribution of events and livetime fraction in time (counting pulser events)
 	TH1D * fHTimeAlpha;
 	TH1D * fHLiveTimeFraction;
@@ -46,6 +56,8 @@ class TimeAlpha : public BCModel {
 	std::vector<double> fVTimeAlpha;
 	std::vector<double> fVLiveTimeFraction;
 	std::vector<double> fVRealDecay;
+
+	int FillDataArrays();
 
 };
 // ---------------------------------------------------------

@@ -26,7 +26,7 @@ using namespace std;
 using namespace gada;
 
 // ---------------------------------------------------------
-TimeAlpha::TimeAlpha(const char * name, std::string keylist ) : BCModel(name) {
+TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	// constructor
 	// define parameters here. For example:
 	// AddParameter("mu",-2,1,"#mu");
@@ -34,13 +34,14 @@ TimeAlpha::TimeAlpha(const char * name, std::string keylist ) : BCModel(name) {
 	// SetPriorGauss("mu",-1,0.25);
 
 	cout << "Created model" << endl;
-
-	ReadData( keylist );
 }
 
 // ---------------------------------------------------------
 TimeAlpha::~TimeAlpha() {
 	// destructor
+	if(fHTimeAlpha) fHTimeAlpha->Delete();
+	if(fHLiveTimeFraction) fHLiveTimeFraction->Delete();
+	if(fHRealDecay) fHRealDecay->Delete();
 }
 
 // ---------------------------------------------------------
@@ -52,7 +53,8 @@ int TimeAlpha::ReadData( string keylist )
 	string GERDA_DATA_SETS = getenv("GERDA_DATA_SETS"); GERDA_DATA_SETS += "/";
 	string data_set = GERDA_DATA_SETS; data_set += keylist;
 
-	cout << "Reading data form keylist: " << data_set << endl;
+	cout << "Reading data from keylist: " << data_set << endl;
+	cout << "This may take a while..." << endl;
 
 	//
 	gada::FileMap myMap;
@@ -139,6 +141,8 @@ int TimeAlpha::ReadData( string keylist )
 	fHRealDecay->Add( fHTimeAlpha );
 	fHRealDecay->Divide( fHLiveTimeFraction );
 
+	FillDataArrays();
+
 	TFile * rootfile = new TFile( "test.root", "RECREATE" );
 	fHTimeAlpha->Write();
 	fHLiveTimeFraction->Write();
@@ -146,6 +150,20 @@ int TimeAlpha::ReadData( string keylist )
 	rootfile->Close();
 
 	return 0;
+}
+
+
+// ---------------------------------------------------------
+int TimeAlpha::FillDataArrays()
+{
+	int nBins = fHTimeAlpha->GetNbinsX();
+
+	for( int b = 1; b <= nBins; b++ )
+	{
+		fVTimeAlpha.push_back( fHTimeAlpha->GetBinContent(b) );
+		fVLiveTimeFraction.push_back( fHLiveTimeFraction->GetBinContent(b) );
+		fVRealDecay.push_back( fHRealDecay->GetBinContent(b) );
+	}
 }
 
 
@@ -162,6 +180,10 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 	// Calculate your likelihood according to your model. You may find
 	// the built in functions such as BCMath::LogPoisson helpful.
 	// Return the logarithm of this likelood
+
+	double logprob = 0.;
+
+
 
 	return -1;
 }

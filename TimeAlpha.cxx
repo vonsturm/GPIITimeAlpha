@@ -5,6 +5,7 @@
 // ***************************************************************
 
 #include <string>
+#include <climits>
 
 #include "TimeAlpha.h"
 
@@ -81,15 +82,16 @@ int TimeAlpha::ReadData( string keylist )
 	chain -> SetBranchAddress("isVetoedInTime", &isVetoedInTime);
 	chain -> SetBranchAddress("failedFlag",&failedFlag);
 
-	chain->GetEntry( nentries - 1 );
-
 	// Prepare histograms cut the last piece of data if it doen't fit in the 20 days scheme
-	unsigned long secondIn20Days = 60*60*24*20;
-	unsigned long nBins = timestamp / secondIn20Days;
-	int maxDay = 20 * nBins;
+	unsigned long secondsInADay= 60 * 60 * 24;
 
-	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", nBins, 0, maxDay );
-	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", nBins, 0, (double)maxDay );
+	chain->GetEntry(0);
+
+	unsigned long long timestamp_before = timestamp;
+	double time = 0.; // time in days
+
+	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
+	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
 
 	for( int e = 0; e < nentries; e++ )
 	{
@@ -100,13 +102,18 @@ int TimeAlpha::ReadData( string keylist )
 		if( isVetoed ) 			continue;
 		if( isVetoedInTime ) 	continue;
 
+		if( timestamp_before < timestamp )
+			time += (double)(timestamp - timestamp_before) / (double)secondsInADay;
+		else
+			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInADay;
+
 		for( int i = 0; i < fNDetectors; i++ )
 		{
 			if( failedFlag->at(i) ) continue;
 
-			if( isTP ) fHLiveTimeFraction->Fill( timestamp / secondIn20Days );
+			if( isTP ) fHLiveTimeFraction->Fill( time );
 			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
-				fHTimeAlpha->Fill( timestamp / secondIn20Days );
+				fHTimeAlpha->Fill( time );
 
 			break;
 		}

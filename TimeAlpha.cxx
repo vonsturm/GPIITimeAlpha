@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
+#include <cmath>
 
 #include "TimeAlpha.h"
 
@@ -17,6 +18,7 @@
 #include "TChain.h"
 #include "TH1D.h"
 #include "TFile.h"
+#include "TF1.h"
 
 // gerda-ada includes
 #include "FileMap.h"
@@ -29,9 +31,14 @@ using namespace gada;
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	// constructor
 	// define parameters here. For example:
-	// AddParameter("mu",-2,1,"#mu");
+	AddParameter( "constant", 0., 1000., "c" );
+	AddParameter( "amplitude", 0., 1000., "a" );
+	AddParameter( "tau", 0., 1000., "#tau" );
+
 	// and set priors, if using built-in priors. For example:
-	// SetPriorGauss("mu",-1,0.25);
+	SetPriorConstant( 0 );
+	SetPriorConstant( 1 );
+	SetPriorGauss( 2, 138.3763, 0.0017 );
 
 	cout << "Created model" << endl;
 }
@@ -102,7 +109,6 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
-	fHRealDecay = new TH1D( "HRealDecay", "HRealDecay", 10, 0, (double)200. );
 
 	cout << "Loop over event chain." << endl;
 
@@ -138,16 +144,7 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
-	fHRealDecay->Add( fHTimeAlpha );
-	fHRealDecay->Divide( fHLiveTimeFraction );
-
 	FillDataArrays();
-
-	TFile * rootfile = new TFile( "test.root", "RECREATE" );
-	fHTimeAlpha->Write();
-	fHLiveTimeFraction->Write();
-	fHRealDecay->Write();
-	rootfile->Close();
 
 	return 0;
 }
@@ -156,14 +153,16 @@ int TimeAlpha::ReadData( string keylist )
 // ---------------------------------------------------------
 int TimeAlpha::FillDataArrays()
 {
-	int nBins = fHTimeAlpha->GetNbinsX();
+	cout << "Loading data in vectors for faster access." << endl;
 
-	for( int b = 1; b <= nBins; b++ )
+	for( int b = 1; b <= fNBins; b++ )
 	{
 		fVTimeAlpha.push_back( fHTimeAlpha->GetBinContent(b) );
 		fVLiveTimeFraction.push_back( fHLiveTimeFraction->GetBinContent(b) );
 		fVRealDecay.push_back( fHRealDecay->GetBinContent(b) );
 	}
+
+	return 0;
 }
 
 
@@ -181,11 +180,102 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 	// the built in functions such as BCMath::LogPoisson helpful.
 	// Return the logarithm of this likelood
 
+	double constant = parameters[0];
+	double amplitude = parameters[1];
+	double tau = parameters[2];
+
+	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
+
 	double logprob = 0.;
 
+	for( int b = 0; b < fNBins; b++)
+	{
+		double t1 = fHMinimum + b * BinWidth;
+		double t2 = fHMinimum + (b+1) * BinWidth;
 
+		double lambda = constant * ( t2 - t1 ) - amplitude / tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
+		lambda *= fVLiveTimeFraction.at(b);
 
-	return -1;
+	    double data = fVTimeAlpha.at(b);
+
+	    double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
+
+	    logprob += sum;
+	  }
+
+	  return logprob;
+}
+
+// ---------------------------------------------------------
+void TimeAlpha::WriteOutput( string outputfilename )
+{
+	// Write Livetime Fraction
+
+	// Write Data
+
+	// Write Model
+	const vector<double> * BestFit = GetBestFitParametersMarginalized();
+
+	vector<double> * BestFitParameters;
+	vector<double> * BestFitParameterErrors1s;
+	vector<double> * BestFitParameterErrors2s;
+	vector<double> * BestFitParameterErrors3s;
+
+	for( int i = 0; i < GetNFreeParameters(); i++ )
+	{
+		BCH1D * parHisto = MCMCGetH1Marginalized();
+
+		double value =  parHisto->GetMode();
+
+		BestFitParameters -> push_back( value );
+
+		double xmin, xmax;
+	    parHisto->GetSmallestInterval( xmin, xmax, 0.683 );
+	    BestFitParameterErrors1s -> push_back( (xmax - xmin) / 2. );
+
+	    cout << "Par0 " << value << "(" << xmin << "," << xmax << ")" << endl;
+
+	    /*
+	    parHisto->GetSmallestInterval( xmin, xmax, 0.954 );
+	    BestFitParameterErrors2s -> push_back( (xmax - xmin) / 2. );
+	    parHisto->GetSmallestInterval( xmin, xmax, 0.997 );
+	    BestFitParameterErrors3s -> push_back( (xmax - xmin) / 2. );
+	    */
+	}
+
+	TF1 * model = new TF1( "model", "[0] + [1]*exp( -x/[3] )", fHMinimum, fHMaximum );
+	model -> SetParameters( BestFitParameters->at(0),
+			BestFitParameters->at(1), BestFitParameters->at(2) );
+/*	model -> SetParErrors( 0, BestFitParameterErrors1s(0) );
+	model -> SetParErrors( 1, BestFitParameterErrors1s(1) );
+	model -> SetParErrors( 2, BestFitParameterErrors1s(2) );
+*/
+
+	TH1D * exp = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
+
+	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
+
+	for( int b = 0; b < fNBins; b++)
+	{
+		double t1 = fHMinimum + b * BinWidth;
+		double t2 = fHMinimum + (b+1) * BinWidth;
+
+		double lambda = BestFitParameters->at(0) * ( t2 - t1 )
+				- BestFitParameters->at(1) / BestFitParameters->at(2)
+				* ( exp( -t2/BestFitParameters->at(2) ) - exp( -t1/BestFitParameters->at(2) ) );
+		lambda *= fVLiveTimeFraction.at(b);
+
+		exp -> SetBinContent( b, lambda );
+	}
+
+	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
+	model -> Write();
+	fHTimeAlpha -> Write();
+	fHLiveTimeFraction -> Write();
+	exp -> Write();
+	out -> Close();
+
+	return;
 }
 
 // ---------------------------------------------------------

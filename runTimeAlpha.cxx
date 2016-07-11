@@ -11,8 +11,32 @@
 
 #include "TimeAlpha.h"
 
-int main()
+using namespace std;
+
+int main( int argc, char* argv[]  )
 {
+	string keylist;
+	string precision = "kMedium";
+
+	if( argc == 2 ) keylist = argv[1];
+	else if( argc == 3 )
+	{
+		keylist = argv[1];
+		precision = argv[2];
+	}
+	else if( argc > 3 )
+	{
+		cout << "Too many parameters. Give keylist and precision rest will be ignored." << endl;
+	}
+	else
+	{
+		cout << "Not enough parameters given. Exit!" << endl;
+		return -1;
+	}
+
+	string keylist = argv[1];
+	string precision = argv[2];
+
 	// set nicer style for drawing than the ROOT default
 	BCAux::SetStyle();
 
@@ -21,11 +45,14 @@ int main()
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m->SetNBinsHistograms( 10, 0., 200. );
-	m->ReadData( "run0053-phy-analysis.txt" );
+	m->SetNBinsHistograms( 16, 0., 160. );
+	m->ReadData( keylist );
 	
 	// set precision
-	m -> MCMCSetPrecision(BCEngineMCMC::kMedium);
+	if( precision == "kLow" ) 			m -> MCMCSetPrecision( BCEngineMCMC::kLow );
+	else if( precision == "kMedium" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kMedium );
+	else if( precision == "kHigh" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kHigh );
+	else if( precision == "kVeryHigh" ) m -> MCMCSetPrecision( BCEngineMCMC::kVeryHigh );
 
 	BCLog::OutSummary("Test model created");
 
@@ -34,35 +61,38 @@ int main()
 
 	// normalize the posterior, i.e. integrate posterior over the full
 	// parameter space
-	// m -> SetIntegrationMethod(BCIntegrate::kIntDefault);
-	// m -> Normalize();
+	m -> SetIntegrationMethod(BCIntegrate::kIntDefault);
+	m -> Normalize();
 
 	// run MCMC and marginalize posterior w/r/t all parameters and all
 	// combinations of two parameters
-	// m -> MarginalizeAll(BCIntegrate::kMargMetropolis);
+	m -> MarginalizeAll(BCIntegrate::kMargMetropolis);
 
 	// run mode finding; by default using Minuit
-	// m -> FindMode( m->GetBestFitParameters() );
+	m -> FindMode( m->GetBestFitParameters() );
 
 	// draw all marginalized distributions into a PDF file
-	// m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
+	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
 	// print all summary plots
-	// m -> PrintParameterPlot("TimeAlpha_parameters.pdf");
-	// m -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-	// m -> PrintCorrelationMaxtrix("TimeAlpha_correlationMatrix.pdf");
+	m -> PrintParameterPlot("TimeAlpha_parameters.pdf");
+	m -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
+	m -> PrintCorrelationMaxtrix("TimeAlpha_correlationMatrix.pdf");
+
+	m -> WriteOutput( "TimeAlpha_model.root" );
 
 	// create a new summary tool object, to print change from prior -> posterior
-	// BCSummaryTool * summary = new BCSummaryTool(m);
-	// summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
+	BCSummaryTool * summary = new BCSummaryTool(m);
+	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
 
 	// calculate p-value
-	// m -> CalculatePValue( m->GetBestFitParameters() );
+	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	//  m -> PrintResults("TimeAlpha_results.txt");
+	m -> PrintResults("TimeAlpha_results.txt");
 
 	delete m;
+
 	// delete summary;
 
 	BCLog::OutSummary("Exiting");

@@ -41,6 +41,8 @@ class TimeAlpha : public BCModel {
 	double LogLikelihood(const std::vector<double> & parameters);
 	// double LogAPrioriProbability(const std::vector<double> & parameters);
 
+	void WriteOutput( std::string outputfilename );
+
  private:
 
 	int fNDetectors = 40;
@@ -51,11 +53,9 @@ class TimeAlpha : public BCModel {
 	// Data arrays with time distribution of events and livetime fraction in time (counting pulser events)
 	TH1D * fHTimeAlpha;
 	TH1D * fHLiveTimeFraction;
-	TH1D * fHRealDecay;
 
 	std::vector<double> fVTimeAlpha;
 	std::vector<double> fVLiveTimeFraction;
-	std::vector<double> fVRealDecay;
 
 	int FillDataArrays();
 

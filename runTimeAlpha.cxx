@@ -17,7 +17,7 @@ int main()
 	BCAux::SetStyle();
 
 	// open log file
-	BCLog::OpenLog("log.txt", BCLog::detail, BCLog::detail);
+	BCLog::OpenLog( "log.txt", BCLog::detail, BCLog::detail );
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha", "run0053-run0064-phy-analysis.txt" );

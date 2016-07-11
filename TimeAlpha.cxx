@@ -8,6 +8,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstdio>
+#include <vector>
 
 #include "TimeAlpha.h"
 
@@ -31,6 +32,9 @@ TimeAlpha::TimeAlpha(const char * name, std::string keylist ) : BCModel(name) {
 	// AddParameter("mu",-2,1,"#mu");
 	// and set priors, if using built-in priors. For example:
 	// SetPriorGauss("mu",-1,0.25);
+
+	cout << "Created model" << endl;
+
 	ReadData( keylist );
 }
 

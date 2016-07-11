@@ -97,9 +97,9 @@ int TimeAlpha::ReadData( string keylist )
 
 		// Apply cuts
 		if( multiplicity != 1 ) continue;
-		if( isVetoed ) 			continue;
-		if( isVetoedInTime ) 	continue;
-		if( failedFlag ) 		continue;
+		//if( isVetoed ) 			continue;
+		//if( isVetoedInTime ) 	continue;
+		//if( failedFlag ) 		continue;
 
 		if( isTP ) fHLiveTimeFraction->Fill( timestamp / secondIn20Days );
 		else if( energy->at(eventChannelNumber) > 3500. && energy->at(eventChannelNumber) < 5300. ) 

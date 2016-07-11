@@ -91,6 +91,7 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
+	fHRealDecay = new TH1D( "HRealDecay", "HRealDecay", 10, 0, (double)200. );
 
 	for( int e = 0; e < nentries; e++ )
 	{
@@ -124,7 +125,7 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
-	fHRealDecay = (TH1D*)fHTimeAlpha->Clone( "HRealDecay" );
+	fHRealDecay->Add( fHTimeAlpha );
 	fHRealDecay->Divide( fHLiveTimeFraction );
 
 	TFile * rootfile = new TFile( "test.root", "RECREATE" );

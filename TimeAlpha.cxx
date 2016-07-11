@@ -100,7 +100,8 @@ int TimeAlpha::ReadData( string keylist )
 		if( failedFlag ) 		continue;
 
 		if( isTP ) fHLiveTimeFraction->Fill( timestamp / secondIn20Days );
-		else if( energy > 3500. && energy < 5300. ) fHTimeAlpha->Fill( timestamp / secondIn20Days );
+		else if( energy->at(eventChannelNumber) > 3500. && energy->at(eventChannelNumber) < 5300. ) 
+			fHTimeAlpha->Fill( timestamp / secondIn20Days );
 	}
 
 	// Expected number of TP in 20 days: Test Pulser rate is 0.05Hz = 1/20s

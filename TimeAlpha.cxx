@@ -102,14 +102,15 @@ int TimeAlpha::ReadData( string keylist )
 		// if( isVetoed ) 			continue;
 		// if( isVetoedInTime ) 	continue;
 
-		if( e%1000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
-
-		if( timestamp_before < timestamp )
+		if( timestamp_before <= timestamp )
 			time += (double)(timestamp - timestamp_before) / (double)secondsInAnHour;
 		else
 			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInAnHour;
 
 		timestamp_before = timestamp;
+
+		if( e%1000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
+
 
 		for( int i = 0; i < fNDetectors; i++ )
 		{

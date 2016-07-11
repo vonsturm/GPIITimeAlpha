@@ -22,7 +22,7 @@ class TimeAlpha : public BCModel {
  public:
 
 	// Constructor and destructor
-	TimeAlpha( const char * name = "TimeAlpha", std::string keylist );
+	TimeAlpha( const char * name = "TimeAlpha", std::string keylist = "default.txt" );
 	~TimeAlpha();
 
 	int ReadData( std::string keylist );

@@ -94,6 +94,8 @@ int TimeAlpha::ReadData( string keylist )
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
 	fHRealDecay = new TH1D( "HRealDecay", "HRealDecay", 10, 0, (double)200. );
 
+	cout << "Loop over event chain." << endl;
+
 	for( int e = 0; e < nentries; e++ )
 	{
 		chain->GetEntry(e);

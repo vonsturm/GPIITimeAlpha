@@ -37,6 +37,9 @@ int main( int argc, char* argv[]  )
 	keylist = argv[1];
 	precision = argv[2];
 
+	cout << "Keylist: " << keylist << endl;
+	cout << "Fit precision: " << precision << endl;
+
 	// set nicer style for drawing than the ROOT default
 	BCAux::SetStyle();
 

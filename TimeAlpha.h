@@ -45,6 +45,7 @@ class TimeAlpha : public BCModel {
 
 	std::vector<double> fVTimeAlpha;
 	std::vector<double> fVLiveTimeFraction;
+	std::vector<double> fVRealDecay;
 
 };
 // ---------------------------------------------------------

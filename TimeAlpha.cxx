@@ -13,6 +13,7 @@
 
 #include "TChain.h"
 #include "TH1D.h"
+#include "TFile.h"
 
 // gerda-ada includes
 #include "FileMap.h"

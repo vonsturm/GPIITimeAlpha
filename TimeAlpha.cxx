@@ -46,6 +46,8 @@ int TimeAlpha::ReadData( string keylist )
 	string GERDA_DATA_SETS = getenv("GERDA_DATA_SETS"); GERDA_DATA_SETS += "/";
 	string data_set = GERDA_DATA_SETS; data_set += keylist;
 
+	cout << "Reading data form keylist: " << data_set << endl;
+
 	//
 	gada::FileMap myMap;
 	myMap.SetRootDir( GERDA_PHASEII_DATA );

@@ -102,8 +102,8 @@ int TimeAlpha::ReadData( string keylist )
 
 		// Apply cuts
 		// if( multiplicity != 1 ) continue;
-		if( isVetoed ) 			continue;
-		if( isVetoedInTime ) 	continue;
+		// if( isVetoed ) 			continue;
+		// if( isVetoedInTime ) 	continue;
 
 		double time = (double)timestamp / (double)secondsInAnHour;
 		time -= time0;

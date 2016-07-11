@@ -125,7 +125,7 @@ int TimeAlpha::ReadData( string keylist )
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
 	fHRealDecay = (TH1D*)fHTimeAlpha->Clone( "HRealDecay" );
-	fHRealDecay /= fHLiveTimeFraction;
+	fHRealDecay->Divide( fHLiveTimeFraction );
 
 	TFile * rootfile = new TFile( "test.root", "RECREATE" );
 	fHTimeAlpha->Write();

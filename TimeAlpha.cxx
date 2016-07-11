@@ -109,7 +109,7 @@ int TimeAlpha::ReadData( string keylist )
 
 		timestamp_before = timestamp;
 
-		if( e%1000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
+		if( e%10000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
 
 
 		for( int i = 0; i < fNDetectors; i++ )

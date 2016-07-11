@@ -41,11 +41,13 @@ TimeAlpha::~TimeAlpha() {
 int TimeAlpha::ReadData( string keylist )
 {
 	string GERDA_PHASEII_DATA = getenv("GERDA_PHASEII_DATA");
+	string GERDA_DATA_SETS = getenv("GERDA_DATA_SETS"); GERDA_DATA_SETS += "/";
+	string data_set = GERDA_DATA_SETS; data_set += keylist;
 
 	//
 	gada::FileMap myMap;
 	myMap.SetRootDir( GERDA_PHASEII_DATA );
-	myMap.BuildFromListOfKeys( keylist );
+	myMap.BuildFromListOfKeys( data_set );
 
 	gada::DataLoader l;
 	l.AddFileMap(&myMap);

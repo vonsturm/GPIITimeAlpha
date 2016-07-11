@@ -30,7 +30,7 @@ int main( int argc, char* argv[]  )
 	}
 	else
 	{
-		cout << "Not enough parameters given. Exit!" << endl;
+		cout << "Not enough parameters given. Give keylist and optional precision. Exit!" << endl;
 		return -1;
 	}
 

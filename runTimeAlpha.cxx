@@ -34,8 +34,8 @@ int main( int argc, char* argv[]  )
 		return -1;
 	}
 
-	string keylist = argv[1];
-	string precision = argv[2];
+	keylist = argv[1];
+	precision = argv[2];
 
 	// set nicer style for drawing than the ROOT default
 	BCAux::SetStyle();

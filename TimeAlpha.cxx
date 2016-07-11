@@ -83,12 +83,12 @@ int TimeAlpha::ReadData( string keylist )
 	chain -> SetBranchAddress("failedFlag",&failedFlag);
 
 	// Prepare histograms cut the last piece of data if it doen't fit in the 20 days scheme
-	unsigned long secondsInADay= 60 * 60 * 24;
+	unsigned long long secondsInAnHour= 60 * 60;
 
 	chain->GetEntry(0);
 
 	unsigned long long timestamp_before = timestamp;
-	double time = 0.; // time in days
+	double time = 0.; // time in hours
 
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
@@ -102,20 +102,22 @@ int TimeAlpha::ReadData( string keylist )
 		// if( isVetoed ) 			continue;
 		// if( isVetoedInTime ) 	continue;
 
-		if( e%1000 == 0 ) cout << time << endl;
+		if( e%1000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
 
 		if( timestamp_before < timestamp )
-			time += (double)(timestamp - timestamp_before) / (double)secondsInADay;
+			time += (double)(timestamp - timestamp_before) / (double)secondsInAnHour;
 		else
-			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInADay;
+			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInAnHour;
+
+		timestamp_before = timestamp;
 
 		for( int i = 0; i < fNDetectors; i++ )
 		{
 			if( failedFlag->at(i) ) continue;
 
-			if( isTP ) fHLiveTimeFraction->Fill( time );
+			if( isTP ) fHLiveTimeFraction->Fill( time / 24. );
 			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
-				fHTimeAlpha->Fill( time );
+				fHTimeAlpha->Fill( time / 24. );
 
 			break;
 		}

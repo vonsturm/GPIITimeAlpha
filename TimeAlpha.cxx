@@ -125,13 +125,13 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
-	fHRealDecay->Add( fHTimeAlpha );
-	fHRealDecay->Divide( fHLiveTimeFraction );
+	// fHRealDecay->Add( fHTimeAlpha );
+	// fHRealDecay->Divide( fHLiveTimeFraction );
 
 	TFile * rootfile = new TFile( "test.root", "RECREATE" );
 	fHTimeAlpha->Write();
 	fHLiveTimeFraction->Write();
-	fHRealDecay->Write();
+	// fHRealDecay->Write();
 	rootfile->Close();
 
 	return 0;

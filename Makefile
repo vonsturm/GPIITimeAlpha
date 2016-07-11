@@ -16,17 +16,35 @@
 
 # compiler and flags
 CXX          = g++
-CXXFLAGS     = -g -O2 -Wall -fPIC -Wno-deprecated  -I/opt/exp_software/gerda/user/vonsturm/sw/cuba/linux-scientific-6-x86_64/4.0/include
+CXXFLAGS     = -g -O2 -Wall -fPIC -Wno-deprecated
 LD           = /opt/exp_software/gerda/common/sw/binutils/linux-scientific-6-x86_64/2.25/bin/ld -m elf_x86_64
-LDFLAGS      = -g -O2   -L/opt/exp_software/gerda/user/vonsturm/sw/cuba/linux-scientific-6-x86_64/4.0/lib
+LDFLAGS      = -g -O2 
 
 # ----------------------------------------------------------------------
 # The following definitions rely on the script bat-config being
 # available in $PATH. If BAT is not installed in the standard system
 # directories, update $PATH accordingly.
 
-CXXFLAGS += `bat-config --cflags`
-LIBS := `bat-config --libs`
+# BAT
+CXXFLAGS += $(shell bat-config --cflags)
+LIBS := $(shell bat-config --libs)
+
+# CUBA
+CXXFLAGS += -I$(CUBA_BASE_DIR)/include
+LIBS += -L$(CUBA_BASE_DIR)/lib -lcuba
+
+# ROOT
+CXXFLAGS += $(shell root-config --cflags)
+LIBS += $(shell root-config --libs) -lMinuit
+
+# GERDA-ADA
+CXXFLAGS += -I$(GERDA_BASE_DIR)/include/gerda-ada/
+LIBS += -L$(GERDA_BASE_DIR)/lib -lgerda-ada-core -lgerda-ada-calib-ged -lgerda-ada-dataprod -lgerda-ada-evtviewer -lgerda-ada-monitoring -lgerda-ada-psd-base -lgerda-ada-stats
+
+# GELATIO
+CXXFLAGS += -I$(GERDA_BASE_DIR)/include/gelatio
+LIBS += -L$(GERDA_BASE_DIR)/lib -lGELATIODecoders -lGELATIOManagement -lGELATIOModules -lGELATIOUtilities
+
 
 # List of all classes (models) used in the program
 # Add classes to the end. Backslash indicates continuation

@@ -87,8 +87,7 @@ int TimeAlpha::ReadData( string keylist )
 
 	chain->GetEntry(0);
 
-	unsigned long long timestamp_before = timestamp;
-	double time = 0.; // time in hours
+	double time0 = (double)timestamp / (double)secondsInAnHour; // time in hours
 
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
@@ -99,18 +98,11 @@ int TimeAlpha::ReadData( string keylist )
 
 		// Apply cuts
 		// if( multiplicity != 1 ) continue;
-		// if( isVetoed ) 			continue;
-		// if( isVetoedInTime ) 	continue;
+		if( isVetoed ) 			continue;
+		if( isVetoedInTime ) 	continue;
 
-		if( timestamp_before <= timestamp )
-			time += (double)(timestamp - timestamp_before) / (double)secondsInAnHour;
-		else
-		{
-			cout << "End timestamp" << endl;
-			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInAnHour;
-		}
-
-		timestamp_before = timestamp;
+		double time = (double)timestamp / (double)secondsInAnHour;
+		time -= time0;
 
 		if( e%10000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
 
@@ -132,9 +124,13 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
+	fHRealDecay = fHTimeAlpha->Clone( "HRealDecay" );
+	fHRealDecay /= fHLiveTimeFraction;
+
 	TFile * rootfile = new TFile( "test.root", "RECREATE" );
 	fHTimeAlpha->Write();
 	fHLiveTimeFraction->Write();
+	fHRealDecay->Write();
 	rootfile->Close();
 
 	return 0;

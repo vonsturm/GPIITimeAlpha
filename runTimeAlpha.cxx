@@ -74,16 +74,14 @@ int main( int argc, char* argv[]  )
 	// draw all marginalized distributions into a PDF file
 	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-	// print all summary plots
-	m -> PrintParameterPlot("TimeAlpha_parameters.pdf");
-	m -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-	m -> PrintCorrelationMaxtrix("TimeAlpha_correlationMatrix.pdf");
-
 	m -> WriteOutput( "TimeAlpha_model.root" );
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
 	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
+	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
+	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
+	summary -> PrintCorrelationMaxtrix("TimeAlpha_correlationMatrix.pdf");
 
 	// calculate p-value
 	m -> CalculatePValue( m->GetBestFitParameters() );

@@ -6,6 +6,8 @@
 
 #include <string>
 #include <climits>
+#include <cstdlib>
+#include <cstdio>
 
 #include "TimeAlpha.h"
 

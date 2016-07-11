@@ -111,6 +111,11 @@ int TimeAlpha::ReadData( string keylist )
 
 	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
 
+	TFile * rootfile = new TFile( "test.root", "RECREATE" );
+	fHTimeAlpha->Write();
+	fHLiveTimeFraction->Write();
+	rootfile->Close();
+
 	return 0;
 }
 

@@ -14,6 +14,7 @@
 #include "TimeAlpha.h"
 
 #include <BAT/BCMath.h>
+#include <BAT/BCH1D.h>
 
 #include "TChain.h"
 #include "TH1D.h"
@@ -48,7 +49,6 @@ TimeAlpha::~TimeAlpha() {
 	// destructor
 	if(fHTimeAlpha) fHTimeAlpha->Delete();
 	if(fHLiveTimeFraction) fHLiveTimeFraction->Delete();
-	if(fHRealDecay) fHRealDecay->Delete();
 }
 
 // ---------------------------------------------------------
@@ -159,7 +159,6 @@ int TimeAlpha::FillDataArrays()
 	{
 		fVTimeAlpha.push_back( fHTimeAlpha->GetBinContent(b) );
 		fVLiveTimeFraction.push_back( fHLiveTimeFraction->GetBinContent(b) );
-		fVRealDecay.push_back( fHRealDecay->GetBinContent(b) );
 	}
 
 	return 0;
@@ -214,16 +213,16 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	// Write Data
 
 	// Write Model
-	const vector<double> * BestFit = GetBestFitParametersMarginalized();
+	const vector<double> BestFit = GetBestFitParametersMarginalized();
 
 	vector<double> * BestFitParameters;
 	vector<double> * BestFitParameterErrors1s;
-	vector<double> * BestFitParameterErrors2s;
-	vector<double> * BestFitParameterErrors3s;
+//	vector<double> * BestFitParameterErrors2s;
+//	vector<double> * BestFitParameterErrors3s;
 
-	for( int i = 0; i < GetNFreeParameters(); i++ )
+	for( uint i = 0; i < GetNParameters(); i++ )
 	{
-		BCH1D * parHisto = MCMCGetH1Marginalized();
+		BCH1D * parHisto = MCMCGetH1Marginalized( i );
 
 		double value =  parHisto->GetMode();
 
@@ -251,7 +250,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	model -> SetParErrors( 2, BestFitParameterErrors1s(2) );
 */
 
-	TH1D * exp = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
+	TH1D * expected = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
 
 	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
 
@@ -265,14 +264,14 @@ void TimeAlpha::WriteOutput( string outputfilename )
 				* ( exp( -t2/BestFitParameters->at(2) ) - exp( -t1/BestFitParameters->at(2) ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
-		exp -> SetBinContent( b, lambda );
+		expected -> SetBinContent( b, lambda );
 	}
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
 	model -> Write();
 	fHTimeAlpha -> Write();
 	fHLiveTimeFraction -> Write();
-	exp -> Write();
+	expected -> Write();
 	out -> Close();
 
 	return;

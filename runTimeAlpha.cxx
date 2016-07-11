@@ -81,7 +81,7 @@ int main( int argc, char* argv[]  )
 	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
 	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
 	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-	summary -> PrintCorrelationMaxtrix("TimeAlpha_correlationMatrix.pdf");
+	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
 
 	// calculate p-value
 	m -> CalculatePValue( m->GetBestFitParameters() );

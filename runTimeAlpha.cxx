@@ -34,9 +34,6 @@ int main( int argc, char* argv[]  )
 		return -1;
 	}
 
-	keylist = argv[1];
-	precision = argv[2];
-
 	cout << "Keylist: " << keylist << endl;
 	cout << "Fit precision: " << precision << endl;
 

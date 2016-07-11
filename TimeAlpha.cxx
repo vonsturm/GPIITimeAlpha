@@ -100,11 +100,16 @@ int TimeAlpha::ReadData( string keylist )
 		if( isVetoed ) 			continue;
 		if( isVetoedInTime ) 	continue;
 
-		cout << eventChannelNumber << endl;
+		for( int i = 0; i < fNDetectors; i++ )
+		{
+			if( failedFlag->at(i) ) continue;
 
-		if( isTP ) fHLiveTimeFraction->Fill( timestamp / secondIn20Days );
-		else if( energy->at(eventChannelNumber) > 3500. && energy->at(eventChannelNumber) < 5300. )
-			fHTimeAlpha->Fill( timestamp / secondIn20Days );
+			if( isTP ) fHLiveTimeFraction->Fill( timestamp / secondIn20Days );
+			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
+				fHTimeAlpha->Fill( timestamp / secondIn20Days );
+
+			break;
+		}
 	}
 
 	// Expected number of TP in 20 days: Test Pulser rate is 0.05Hz = 1/20s

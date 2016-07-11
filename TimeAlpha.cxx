@@ -98,14 +98,17 @@ int TimeAlpha::ReadData( string keylist )
 		chain->GetEntry(e);
 
 		// Apply cuts
-		// if( multiplicity != 1 ) continue;
+		if( multiplicity != 1 ) continue;
 		// if( isVetoed ) 			continue;
 		// if( isVetoedInTime ) 	continue;
 
 		if( timestamp_before <= timestamp )
 			time += (double)(timestamp - timestamp_before) / (double)secondsInAnHour;
 		else
+		{
+			cout << "End timestamp" << endl;
 			time += (double)(ULLONG_MAX - timestamp_before + timestamp) / (double)secondsInAnHour;
+		}
 
 		timestamp_before = timestamp;
 

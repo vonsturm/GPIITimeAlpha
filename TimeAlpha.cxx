@@ -102,6 +102,8 @@ int TimeAlpha::ReadData( string keylist )
 		// if( isVetoed ) 			continue;
 		// if( isVetoedInTime ) 	continue;
 
+		if( e%1000 == 0 ) cout << time << endl;
+
 		if( timestamp_before < timestamp )
 			time += (double)(timestamp - timestamp_before) / (double)secondsInADay;
 		else

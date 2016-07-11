@@ -21,8 +21,8 @@ int main()
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	SetNBinsHistograms( 10, 0., 200. );
-	ReadData( "run0053-phy-analysis.txt" );
+	m->SetNBinsHistograms( 10, 0., 200. );
+	m->ReadData( "run0053-phy-analysis.txt" );
 	
 	// set precision
 	m -> MCMCSetPrecision(BCEngineMCMC::kMedium);

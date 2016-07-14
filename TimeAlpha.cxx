@@ -32,14 +32,15 @@ using namespace gada;
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	// constructor
 	// define parameters here. For example:
-	AddParameter( "constant", 0., 1000., "c" );
-	AddParameter( "amplitude", 0., 1000., "a" );
-	AddParameter( "tau", 0., 1000., "#tau" );
+	AddParameter( "constant", 0., 1000. );
+	AddParameter( "amplitude", 0., 1000. );
+	AddParameter( "halflife", 0., 1000. );
 
 	// and set priors, if using built-in priors. For example:
 	SetPriorConstant( 0 );
 	SetPriorConstant( 1 );
-	SetPriorGauss( 2, 138.3763, 0.0017 );
+//	SetPriorConstant( 2 );
+	SetPriorGauss( 2, 138.3763, 40. );
 
 	cout << "Created model" << endl;
 }
@@ -107,8 +108,11 @@ int TimeAlpha::ReadData( string keylist )
 
 	double time0 = (double)timestamp / (double)secondsInAnHour; // time in hours
 
-	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", 10, 0, 200. );
-	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", 10, 0, (double)200. );
+	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", fNBins, fHMinimum, fHMaximum );
+	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", fNBins, fHMinimum, fHMaximum );
+
+	TH1D * HTimeAlpha_fine = new TH1D( "HTimeAlpha_fine", "HTimeAlpha", (int)fHMaximum, fHMinimum, fHMaximum );
+	TH1D * HLiveTimeFraction_fine = new TH1D( "HLiveTimeFraction_fine", "HLiveTimeFraction", (int)fHMaximum, fHMinimum, fHMaximum );
 
 	cout << "Loop over event chain." << endl;
 
@@ -131,18 +135,33 @@ int TimeAlpha::ReadData( string keylist )
 		{
 			if( failedFlag->at(i) ) continue;
 
-			if( isTP ) fHLiveTimeFraction->Fill( time / 24. );
+			if( isTP )
+			{
+				fHLiveTimeFraction->Fill( time / 24. );
+				HLiveTimeFraction_fine->Fill( time / 24. );
+			}
 			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
+			{
 				fHTimeAlpha->Fill( time / 24. );
+				HTimeAlpha_fine->Fill( time / 24. );
+			}
 
 			break;
 		}
 	}
 
-	// Expected number of TP in 20 days: Test Pulser rate is 0.05Hz = 1/20s
-	int TPExpected = 24 * 60 * 60 ;
+	// Expected number of TP in 1 day: Test Pulser rate is 0.05Hz = 1/20s
+	double TPExpected = 24. * 60. * 60. / 20.;
 
-	fHLiveTimeFraction->Scale( 1./(double)TPExpected );
+	fHLiveTimeFraction->Scale( 1./( TPExpected * fHTimeAlpha -> GetBinWidth( 1 ) ) );
+	HLiveTimeFraction_fine->Scale( 1./( TPExpected * HLiveTimeFraction_fine-> GetBinWidth( 1 ) ) );
+
+	TFile * out = new TFile( "test.root", "RECREATE" );
+	HTimeAlpha_fine -> Write();
+	fHTimeAlpha -> Write();
+	HLiveTimeFraction_fine -> Write();
+	fHLiveTimeFraction -> Write();
+	out -> Close();
 
 	FillDataArrays();
 
@@ -181,7 +200,7 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 
 	double constant = parameters[0];
 	double amplitude = parameters[1];
-	double tau = parameters[2];
+	double halflife = parameters[2];
 
 	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
 
@@ -190,16 +209,18 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 	for( int b = 0; b < fNBins; b++)
 	{
 		double t1 = fHMinimum + b * BinWidth;
-		double t2 = fHMinimum + (b+1) * BinWidth;
+		double t2 = t1 + BinWidth;
 
-		double lambda = constant * ( t2 - t1 ) - amplitude / tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
+		double tau = halflife / log(2.);
+
+		double lambda = constant * BinWidth + amplitude * tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
-	    double data = fVTimeAlpha.at(b);
+	    	double data = fVTimeAlpha.at(b);
+		
+	    	double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
 
-	    double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
-
-	    logprob += sum;
+		if( lambda > 0 ) logprob += sum;
 	  }
 
 	  return logprob;
@@ -276,6 +297,27 @@ void TimeAlpha::WriteOutput( string outputfilename )
 
 	return;
 }
+
+
+// ---------------------------------------------------------
+void TimeAlpha::WriteDistributions()
+{	
+	TFile * test = new TFile( "posteriors.root", "RECREATE" );
+
+	for( uint i = 0; i < GetNParameters(); i++ )
+	{
+		BCH1D * parHisto = MCMCGetH1Marginalized( i );
+
+		TH1D * histo = parHisto -> GetHistogram();
+
+		histo -> Write();
+	}
+	
+	test -> Close();
+
+	return;
+}
+
 
 // ---------------------------------------------------------
 // double TimeAlpha::LogAPrioriProbability(const std::vector<double> & parameters) {

@@ -42,6 +42,7 @@ class TimeAlpha : public BCModel {
 	// double LogAPrioriProbability(const std::vector<double> & parameters);
 
 	void WriteOutput( std::string outputfilename );
+	void WriteDistributions();
 
  private:
 

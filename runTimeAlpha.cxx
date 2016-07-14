@@ -34,9 +34,6 @@ int main( int argc, char* argv[]  )
 		return -1;
 	}
 
-	cout << "Keylist: " << keylist << endl;
-	cout << "Fit precision: " << precision << endl;
-
 	// set nicer style for drawing than the ROOT default
 	BCAux::SetStyle();
 
@@ -45,8 +42,8 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m->SetNBinsHistograms( 16, 0., 160. );
-	m->ReadData( keylist );
+	m -> SetNBinsHistograms( 160, 0., 160. );
+	m -> ReadData( keylist );
 	
 	// set precision
 	if( precision == "kLow" ) 			m -> MCMCSetPrecision( BCEngineMCMC::kLow );
@@ -69,25 +66,26 @@ int main( int argc, char* argv[]  )
 	m -> MarginalizeAll(BCIntegrate::kMargMetropolis);
 
 	// run mode finding; by default using Minuit
-	m -> FindMode( m->GetBestFitParameters() );
+//	m -> FindMode( m->GetBestFitParameters() );
 
 	// draw all marginalized distributions into a PDF file
-	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
+//	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-	m -> WriteOutput( "TimeAlpha_model.root" );
+//	m -> WriteOutput( "TimeAlpha_model.root" );
+	m -> WriteDistributions();
 
 	// create a new summary tool object, to print change from prior -> posterior
-	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
-	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
-	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
+//	BCSummaryTool * summary = new BCSummaryTool(m);
+//	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
+//	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
+//	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
+//	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
 
 	// calculate p-value
-	m -> CalculatePValue( m->GetBestFitParameters() );
+//	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	m -> PrintResults("TimeAlpha_results.txt");
+//	m -> PrintResults("TimeAlpha_results.txt");
 
 	delete m;
 

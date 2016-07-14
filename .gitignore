@@ -2,3 +2,8 @@
 .project
 
 *.o
+*.root
+*.txt
+*.pdf
+
+runTimeAlpha

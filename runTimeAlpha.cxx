@@ -66,12 +66,12 @@ int main( int argc, char* argv[]  )
 	m -> MarginalizeAll(BCIntegrate::kMargMetropolis);
 
 	// run mode finding; by default using Minuit
-//	m -> FindMode( m->GetBestFitParameters() );
+	m -> FindMode( m->GetBestFitParameters() );
 
 	// draw all marginalized distributions into a PDF file
-//	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
+	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-//	m -> WriteOutput( "TimeAlpha_model.root" );
+	m -> WriteOutput( "TimeAlpha_model.root" );
 	m -> WriteDistributions();
 
 	// create a new summary tool object, to print change from prior -> posterior

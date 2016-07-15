@@ -57,8 +57,21 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 		case LinAndExp:
 			SetPriorConstant( 0 );
 			SetPriorConstant( 1 );
-		//	SetPriorConstant( 2 );
 			SetPriorGauss( 2, 138.3763, 40. );
+//			SetPriorGauss( 2, 138.3763, 40. );
+			break;
+
+		case OnlyExp:
+			SetPriorDelta( 0, 0. );
+			SetPriorConstant( 1 );
+			SetPriorGauss( 2, 138.3763, 40. );
+//			SetPriorGauss( 2, 138.3763, 40. );
+			break;
+
+		case OnlyLin:
+			SetPriorConstant( 0 );
+			SetPriorDelta( 0, 0. );
+			SetPriorDelta( 2, 0. );
 			break;
 	}
 

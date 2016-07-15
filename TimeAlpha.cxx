@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #include "TimeAlpha.h"
 
@@ -30,6 +31,20 @@ using namespace gada;
 
 // ---------------------------------------------------------
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
+
+	fDetectorType = all;
+	fModel = LinAndExp;
+
+	fNBins = 100;
+	fHMaximum = 0.;
+	fHMinimum = 100.;
+
+	fHTimeAlpha = NULL;
+	fHLiveTimeFraction = NULL;
+
+	fVTimeAlpha = vector<double>(0);
+	fVLiveTimeFraction = vector<double>(0);
+
 	// constructor
 	// define parameters here. For example:
 	AddParameter( "constant", 0., 1000. );
@@ -37,10 +52,15 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	AddParameter( "halflife", 0., 1000. );
 
 	// and set priors, if using built-in priors. For example:
-	SetPriorConstant( 0 );
-	SetPriorConstant( 1 );
-//	SetPriorConstant( 2 );
-	SetPriorGauss( 2, 138.3763, 40. );
+	switch ( fModel )
+	{
+		case LinAndExp:
+			SetPriorConstant( 0 );
+			SetPriorConstant( 1 );
+		//	SetPriorConstant( 2 );
+			SetPriorGauss( 2, 138.3763, 40. );
+			break;
+	}
 
 	cout << "Created model" << endl;
 }
@@ -116,6 +136,13 @@ int TimeAlpha::ReadData( string keylist )
 
 	cout << "Loop over event chain." << endl;
 
+	vector<int> enrBEGeChannels = {	0,1,2,3,4,5,6,7,
+									11,12,13,14,15,16,17,18,
+									19,20,21,22,23,24,25,26,
+									30,31,32,33,34,35 };
+	vector<int> enrCoaxChannels = {8,9,10,27,28,29,36};
+	vector<int> natCoaxChannels = {37,38,39};
+
 	for( int e = 0; e < nentries; e++ )
 	{
 		chain->GetEntry(e);
@@ -135,18 +162,34 @@ int TimeAlpha::ReadData( string keylist )
 		{
 			if( failedFlag->at(i) ) continue;
 
+			if( fDetectorType == enrBEGe )
+			{
+				if( find( enrBEGeChannels.begin(), enrBEGeChannels.end(), i) == enrBEGeChannels.end() )
+					continue;
+			}
+			if( fDetectorType == enrCoax )
+			{
+				if( find( enrCoaxChannels.begin(), enrCoaxChannels.end(), i) == enrCoaxChannels.end() )
+					continue;
+			}
+			if( fDetectorType == natCoax )
+			{
+				if( find( natCoaxChannels.begin(), natCoaxChannels.end(), i) == natCoaxChannels.end() )
+					continue;
+			}
+
 			if( isTP )
 			{
 				fHLiveTimeFraction->Fill( time / 24. );
 				HLiveTimeFraction_fine->Fill( time / 24. );
+
+				break;
 			}
 			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
 			{
 				fHTimeAlpha->Fill( time / 24. );
 				HTimeAlpha_fine->Fill( time / 24. );
 			}
-
-			break;
 		}
 	}
 
@@ -185,7 +228,8 @@ int TimeAlpha::FillDataArrays()
 
 
 // ---------------------------------------------------------
-double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
+double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
+{
 	// This methods returns the logarithm of the conditional probability
 	// p(data|parameters). This is where you have to define your model.
 
@@ -217,7 +261,7 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 		lambda *= fVLiveTimeFraction.at(b);
 
 	    	double data = fVTimeAlpha.at(b);
-		
+
 	    	double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
 
 		if( lambda > 0 ) logprob += sum;
@@ -225,6 +269,8 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters) {
 
 	  return logprob;
 }
+
+
 
 // ---------------------------------------------------------
 void TimeAlpha::WriteOutput( string outputfilename )

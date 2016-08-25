@@ -42,7 +42,7 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m -> SetNBinsHistograms( 160, 0., 160. );
+	m -> SetNBinsHistograms( 20, 0., 180. );
 	m -> ReadData( keylist );
 	
 	// set precision
@@ -72,7 +72,7 @@ int main( int argc, char* argv[]  )
 	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
 	m -> WriteOutput( "TimeAlpha_model.root" );
-	m -> WriteDistributions();
+//	m -> WriteDistributions();
 
 	// create a new summary tool object, to print change from prior -> posterior
 //	BCSummaryTool * summary = new BCSummaryTool(m);

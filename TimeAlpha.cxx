@@ -33,6 +33,8 @@ using namespace gada;
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
 	fDetectorType = all;
+//	fModel = OnlyLin;
+//	fModel = OnlyExp;
 	fModel = LinAndExp;
 
 	fNBins = 100;
@@ -47,9 +49,9 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
 	// constructor
 	// define parameters here. For example:
-	AddParameter( "constant", 0., 1000. );
-	AddParameter( "amplitude", 0., 1000. );
-	AddParameter( "halflife", 0., 1000. );
+	AddParameter( "constant", 0., 300. );
+	AddParameter( "amplitude", 0., 300. );
+	AddParameter( "halflife", 0., 500. );
 
 	// and set priors, if using built-in priors. For example:
 	switch ( fModel )
@@ -57,20 +59,20 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 		case LinAndExp:
 			SetPriorConstant( 0 );
 			SetPriorConstant( 1 );
-			SetPriorGauss( 2, 138.3763, 40. );
-//			SetPriorGauss( 2, 138.3763, 40. );
+//			SetPriorConstant( 2 );
+			SetPriorGauss( 2, 138.3763, 100. );
 			break;
 
 		case OnlyExp:
 			SetPriorDelta( 0, 0. );
 			SetPriorConstant( 1 );
-			SetPriorGauss( 2, 138.3763, 40. );
+			SetPriorConstant( 2 );
 //			SetPriorGauss( 2, 138.3763, 40. );
 			break;
 
 		case OnlyLin:
 			SetPriorConstant( 0 );
-			SetPriorDelta( 0, 0. );
+			SetPriorDelta( 1, 0. );
 			SetPriorDelta( 2, 0. );
 			break;
 	}
@@ -209,8 +211,8 @@ int TimeAlpha::ReadData( string keylist )
 	// Expected number of TP in 1 day: Test Pulser rate is 0.05Hz = 1/20s
 	double TPExpected = 24. * 60. * 60. / 20.;
 
-	fHLiveTimeFraction->Scale( 1./( TPExpected * fHTimeAlpha -> GetBinWidth( 1 ) ) );
-	HLiveTimeFraction_fine->Scale( 1./( TPExpected * HLiveTimeFraction_fine-> GetBinWidth( 1 ) ) );
+	fHLiveTimeFraction->Scale( 1./( TPExpected * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
+	HLiveTimeFraction_fine->Scale( 1./( TPExpected * HLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
 	TFile * out = new TFile( "test.root", "RECREATE" );
 	HTimeAlpha_fine -> Write();
@@ -270,14 +272,15 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
 
 		double tau = halflife / log(2.);
 
-		double lambda = constant * BinWidth + amplitude * tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
+		double lambda = constant * BinWidth - amplitude * tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
 	    	double data = fVTimeAlpha.at(b);
 
 	    	double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
 
-		if( lambda > 0 ) logprob += sum;
+		// require at least 10% livetime fraction otherwise ignore data point
+		if( lambda > 0 && fVLiveTimeFraction.at(b) > 0.1 ) logprob += sum;
 	  }
 
 	  return logprob;
@@ -295,10 +298,10 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	// Write Model
 	const vector<double> BestFit = GetBestFitParametersMarginalized();
 
-	vector<double> * BestFitParameters;
-	vector<double> * BestFitParameterErrors1s;
-//	vector<double> * BestFitParameterErrors2s;
-//	vector<double> * BestFitParameterErrors3s;
+	vector<double> * BestFitParameters = new vector<double>;
+	vector<double> * BestFitParameterErrors1s = new vector<double>;
+//	vector<double> * BestFitParameterErrors2s = new vector<double>;
+//	vector<double> * BestFitParameterErrors3s = new vector<double>;
 
 	for( uint i = 0; i < GetNParameters(); i++ )
 	{
@@ -322,13 +325,13 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	    */
 	}
 
-	TF1 * model = new TF1( "model", "[0] + [1]*exp( -x/[3] )", fHMinimum, fHMaximum );
-	model -> SetParameters( BestFitParameters->at(0),
+	TF1 * modelfunction = new TF1( "modelfunction", "[0] + [1]*exp( -x*log(2.)/[2] )", fHMinimum, fHMaximum );
+	modelfunction -> SetParameters( BestFitParameters->at(0),
 			BestFitParameters->at(1), BestFitParameters->at(2) );
-/*	model -> SetParErrors( 0, BestFitParameterErrors1s(0) );
-	model -> SetParErrors( 1, BestFitParameterErrors1s(1) );
-	model -> SetParErrors( 2, BestFitParameterErrors1s(2) );
-*/
+	modelfunction -> SetParError( 0, BestFitParameterErrors1s->at(0) );
+	modelfunction -> SetParError( 1, BestFitParameterErrors1s->at(1) );
+	modelfunction -> SetParError( 2, BestFitParameterErrors1s->at(2) );
+
 
 	TH1D * expected = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
 
@@ -337,18 +340,20 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	for( int b = 0; b < fNBins; b++)
 	{
 		double t1 = fHMinimum + b * BinWidth;
-		double t2 = fHMinimum + (b+1) * BinWidth;
+		double t2 = t1 + BinWidth;
 
-		double lambda = BestFitParameters->at(0) * ( t2 - t1 )
-				- BestFitParameters->at(1) / BestFitParameters->at(2)
-				* ( exp( -t2/BestFitParameters->at(2) ) - exp( -t1/BestFitParameters->at(2) ) );
+		double tau = BestFitParameters->at(2) / log(2.);
+
+		double lambda = BestFitParameters->at(0) * BinWidth
+				- BestFitParameters->at(1) * tau
+				* ( exp( -t2/tau ) - exp( -t1/tau ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
 		expected -> SetBinContent( b, lambda );
 	}
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
-	model -> Write();
+	modelfunction -> Write();
 	fHTimeAlpha -> Write();
 	fHLiveTimeFraction -> Write();
 	expected -> Write();

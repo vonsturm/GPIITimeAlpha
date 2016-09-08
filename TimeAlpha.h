@@ -41,13 +41,17 @@ class TimeAlpha : public BCModel {
 	void SetDetectorType( tGetype det ){ fDetectorType = det; };
 
 	void SetModel( tModel model ){ fModel = model; };
+	
+	void SetModelName( std::string name ){ fModelName = name; };
+	std::string GetModelName( tModel model ){ return fModelName; };
 
 	void SetNDetectors( int n ){ fNDetectors = n; };
 	int GetNDetectors(){ return fNDetectors; };
 
 	// Methods to overload, see file TimeAlpha.cxx
 	double LogLikelihood(const std::vector<double> & parameters);
-
+	double EstimatePValue();
+	
 	// double LogAPrioriProbability(const std::vector<double> & parameters);
 
 	void WriteOutput( std::string outputfilename );
@@ -58,6 +62,8 @@ class TimeAlpha : public BCModel {
 	tGetype fDetectorType;
 	tModel fModel;
 
+	std::string fModelName;
+
 	int fNDetectors = 40;
 
 	int fNBins;
@@ -66,6 +72,8 @@ class TimeAlpha : public BCModel {
 	// Data arrays with time distribution of events and livetime fraction in time (counting pulser events)
 	TH1D * fHTimeAlpha;
 	TH1D * fHLiveTimeFraction;
+
+	double fLTLimit = 0.;
 
 	std::vector<double> fVTimeAlpha;
 	std::vector<double> fVLiveTimeFraction;

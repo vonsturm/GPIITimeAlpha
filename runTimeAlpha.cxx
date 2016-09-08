@@ -42,7 +42,7 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m -> SetNBinsHistograms( 20, 0., 180. );
+	m -> SetNBinsHistograms( 180., 0., 180. );
 	m -> ReadData( keylist );
 	
 	// set precision
@@ -69,23 +69,27 @@ int main( int argc, char* argv[]  )
 	m -> FindMode( m->GetBestFitParameters() );
 
 	// draw all marginalized distributions into a PDF file
-	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
+//	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-	m -> WriteOutput( "TimeAlpha_model.root" );
+//	m -> WriteOutput( "TimeAlpha_model.root" );
+
+	double pValue = m -> EstimatePValue();
+	cout << "P-Value estimated with MCMC algorithm: " << pValue << endl;
+
 //	m -> WriteDistributions();
 
 	// create a new summary tool object, to print change from prior -> posterior
-//	BCSummaryTool * summary = new BCSummaryTool(m);
-//	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
-//	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
-//	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-//	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
+	BCSummaryTool * summary = new BCSummaryTool(m);
+	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
+	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
+	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
+	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-//	m -> PrintResults("TimeAlpha_results.txt");
+	m -> PrintResults("TimeAlpha_results.txt");
 
 	delete m;
 

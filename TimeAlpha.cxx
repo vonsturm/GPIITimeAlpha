@@ -21,6 +21,7 @@
 #include "TH1D.h"
 #include "TFile.h"
 #include "TF1.h"
+#include "TCanvas.h"
 
 // gerda-ada includes
 #include "FileMap.h"
@@ -49,28 +50,33 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
 	// constructor
 	// define parameters here. For example:
-	AddParameter( "constant", 0., 300. );
-	AddParameter( "amplitude", 0., 300. );
-	AddParameter( "halflife", 0., 500. );
+	AddParameter( "constant", 0., 15. );
+	AddParameter( "amplitude", 0., 25. );
+	AddParameter( "halflife", 137., 140. );
 
 	// and set priors, if using built-in priors. For example:
 	switch ( fModel )
 	{
 		case LinAndExp:
+			fModelName = "linexp";
+			fModelName = "linexp";
 			SetPriorConstant( 0 );
 			SetPriorConstant( 1 );
 //			SetPriorConstant( 2 );
-			SetPriorGauss( 2, 138.3763, 100. );
+			SetPriorGauss( 2, 138.4, 0.2 );
+//			SetPriorDelta( 2, 138.3763 );
 			break;
 
 		case OnlyExp:
+			fModelName = "exp";
 			SetPriorDelta( 0, 0. );
 			SetPriorConstant( 1 );
 			SetPriorConstant( 2 );
-//			SetPriorGauss( 2, 138.3763, 40. );
+//			SetPriorGauss( 2, 138.4, 0.2 );
 			break;
 
 		case OnlyLin:
+			fModelName = "lin";
 			SetPriorConstant( 0 );
 			SetPriorDelta( 1, 0. );
 			SetPriorDelta( 2, 0. );
@@ -146,8 +152,8 @@ int TimeAlpha::ReadData( string keylist )
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", fNBins, fHMinimum, fHMaximum );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", fNBins, fHMinimum, fHMaximum );
 
-	TH1D * HTimeAlpha_fine = new TH1D( "HTimeAlpha_fine", "HTimeAlpha", (int)fHMaximum, fHMinimum, fHMaximum );
-	TH1D * HLiveTimeFraction_fine = new TH1D( "HLiveTimeFraction_fine", "HLiveTimeFraction", (int)fHMaximum, fHMinimum, fHMaximum );
+	TH1D * HTimeAlpha_fine = new TH1D( "HTimeAlpha_fine", "HTimeAlpha_fine", (int)fHMaximum, fHMinimum, fHMaximum );
+	TH1D * HLiveTimeFraction_fine = new TH1D( "HLiveTimeFraction_fine", "HLiveTimeFraction_fine", (int)fHMaximum, fHMinimum, fHMaximum );
 
 	cout << "Loop over event chain." << endl;
 
@@ -162,16 +168,22 @@ int TimeAlpha::ReadData( string keylist )
 	{
 		chain->GetEntry(e);
 
-		// Apply cuts
-		// if( multiplicity != 1 ) continue;
-		// if( isVetoed ) 			continue;
-		// if( isVetoedInTime ) 	continue;
-
 		double time = (double)timestamp / (double)secondsInAnHour;
 		time -= time0;
 
 		if( e%10000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
 
+		if( isTP )
+		{
+			fHLiveTimeFraction->Fill( time / 24. );
+			HLiveTimeFraction_fine->Fill( time / 24. );
+			continue;
+		}
+
+		// Apply cuts
+		if( multiplicity != 1 ) continue;
+		if( isVetoed ) 	continue;
+		if( isVetoedInTime ) 	continue;
 
 		for( int i = 0; i < fNDetectors; i++ )
 		{
@@ -193,14 +205,7 @@ int TimeAlpha::ReadData( string keylist )
 					continue;
 			}
 
-			if( isTP )
-			{
-				fHLiveTimeFraction->Fill( time / 24. );
-				HLiveTimeFraction_fine->Fill( time / 24. );
-
-				break;
-			}
-			else if( energy->at(i) > 3500. && energy->at(i) < 5300. )
+			if( energy->at(i) > 3500. && energy->at(i) < 5300. )
 			{
 				fHTimeAlpha->Fill( time / 24. );
 				HTimeAlpha_fine->Fill( time / 24. );
@@ -214,7 +219,7 @@ int TimeAlpha::ReadData( string keylist )
 	fHLiveTimeFraction->Scale( 1./( TPExpected * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
 	HLiveTimeFraction_fine->Scale( 1./( TPExpected * HLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
-	TFile * out = new TFile( "test.root", "RECREATE" );
+	TFile * out = new TFile( "TimeAlpha_Data.root", "RECREATE" );
 	HTimeAlpha_fine -> Write();
 	fHTimeAlpha -> Write();
 	HLiveTimeFraction_fine -> Write();
@@ -267,6 +272,8 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
 
 	for( int b = 0; b < fNBins; b++)
 	{
+		if( fVLiveTimeFraction.at(b) <= fLTLimit ) continue;
+
 		double t1 = fHMinimum + b * BinWidth;
 		double t2 = t1 + BinWidth;
 
@@ -280,10 +287,110 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
 	    	double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
 
 		// require at least 10% livetime fraction otherwise ignore data point
-		if( lambda > 0 && fVLiveTimeFraction.at(b) > 0.1 ) logprob += sum;
+		if( lambda > 0 ) logprob += sum;
 	  }
 
 	  return logprob;
+}
+
+
+// ---------------------------------------------------------
+double TimeAlpha::EstimatePValue()
+{
+	//Allen's routine for the evaluation of p-value
+  	//This is derived from PRD 83 (2011) 012004, appendix
+  	//taken from Luciano
+  	
+	double logp0 = LogLikelihood( GetBestFitParameters() ); //likelihood at the mode
+
+  	/*
+    	Now we initialize the Markov Chain by setting the number of entries in a bin to
+    	the integer 
+    	part of the mean in that bin.  This will give the maximum possible likelihood.
+  	*/
+  	
+	double sumlog = 0;
+
+	/* mean is the array where you have the expected mean in each bin (calculated
+     	from the parameter values at the mode. Nom is the nominal value of entries in
+     	each bin (integer part)
+  	*/
+
+  	vector<double> mean( fNBins, 0 );
+	vector<int> nom( fNBins, 0 );
+
+  	vector<double> parameters = GetBestFitParameters();
+	double constant = parameters[0];
+	double amplitude = parameters[1];
+	double halflife = parameters[2];
+
+	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
+
+  	for( int ibin = 0; ibin < fNBins; ibin++ )
+	{
+		//Require a live time fraction of at least 10% otherwise skip data point
+		if( fVLiveTimeFraction.at(ibin) <= fLTLimit ) continue;
+
+                double t1 = fHMinimum + ibin * BinWidth;
+                double t2 = t1 + BinWidth;
+
+                double tau = halflife / log(2.);
+
+                double lambda = constant * BinWidth - amplitude * tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
+                lambda *= fVLiveTimeFraction.at(ibin);
+
+		mean.at( ibin ) = std::max( lambda, 1e-8 );
+      		nom.at( ibin ) = int( mean.at( ibin ) );
+      		sumlog += BCMath::LogPoisson( nom[ ibin ], mean[ ibin ] );
+  	}
+
+  	cout << "Logprob for best: " << sumlog << endl;
+
+  	/*
+  	Now we run the Markov chain to generate new configurations.  One iteration means
+  	a loop over all the bins, with an attempt to vary each bin up or down by one unit.  We
+  	accept/reject at each step  and compare the data logprob to the simulated at the end of each iteration.
+  	*/
+
+  	const int nloops = 100000;
+  	int Pgood = 0;
+
+  	for( int iloop = 0; iloop < nloops; iloop++ )
+  	{
+      		for( int ibin = 0; ibin < fNBins; ibin++)
+      		{
+			if( fVLiveTimeFraction.at(ibin) <= fLTLimit ) continue;
+
+    	  		if ( rand() > RAND_MAX/2 ) // Try to increase the bin content by 1
+    	  		{
+    		  		double r = mean[ ibin ]/( nom[ ibin ] + 1 );
+    		  		double rtest = double( rand() )/RAND_MAX;
+    		  		if( rtest < r ) //Accept
+    		  		{
+    			  		nom[ ibin ] = nom[ ibin ] + 1;
+    			  		sumlog += log(r);
+    		  		}
+    	  		}
+    	  		else // Try to decrease the bin content by 1
+    	  		{
+    		  		double r = nom[ ibin ]/mean[ ibin ];
+    		  		double rtest = double( rand() )/RAND_MAX;
+    		  		if ( rtest < r ) //Accept
+    		  		{
+    			  		nom[ ibin ] = nom[ ibin ] - 1;
+    			  		sumlog += log(r);
+    		  		}
+    	  		}
+      		}
+      	
+		if ( sumlog < logp0 ) Pgood++;
+  	}
+
+  	double pvalue = double(Pgood)/double(nloops);
+
+  	cout << "p-value is " << pvalue << endl;
+
+  	return pvalue;
 }
 
 
@@ -325,13 +432,18 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	    */
 	}
 
-	TF1 * modelfunction = new TF1( "modelfunction", "[0] + [1]*exp( -x*log(2.)/[2] )", fHMinimum, fHMaximum );
-	modelfunction -> SetParameters( BestFitParameters->at(0),
-			BestFitParameters->at(1), BestFitParameters->at(2) );
+	TF1 * modelfunction = new TF1( "modelfunction", "[0]+[1]*exp(-x*log(2.)/[2])", fHMinimum, fHMaximum );
+	modelfunction -> SetParameters( BestFitParameters->at(0), BestFitParameters->at(1), BestFitParameters->at(2) );
 	modelfunction -> SetParError( 0, BestFitParameterErrors1s->at(0) );
 	modelfunction -> SetParError( 1, BestFitParameterErrors1s->at(1) );
 	modelfunction -> SetParError( 2, BestFitParameterErrors1s->at(2) );
 
+	cout << fHMinimum << " " << fHMaximum << endl;
+	cout << BestFitParameters->at(0) << " " <<	BestFitParameters->at(1) << " "<<	BestFitParameters->at(2) << " " << endl;
+	cout << BestFitParameterErrors1s->at(0) << " " <<	BestFitParameterErrors1s->at(1) << " "<<	BestFitParameterErrors1s->at(2) << " " << endl;
+
+	TCanvas * c = new TCanvas("c1");
+	modelfunction->Draw();
 
 	TH1D * expected = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
 
@@ -349,10 +461,11 @@ void TimeAlpha::WriteOutput( string outputfilename )
 				* ( exp( -t2/tau ) - exp( -t1/tau ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
-		expected -> SetBinContent( b, lambda );
+		expected -> SetBinContent( b+1, lambda );
 	}
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
+	c->Write();
 	modelfunction -> Write();
 	fHTimeAlpha -> Write();
 	fHLiveTimeFraction -> Write();

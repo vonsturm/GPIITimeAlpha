@@ -18,7 +18,7 @@
 CXX          = g++
 CXXFLAGS     = -g -O2 -Wall -fPIC -Wno-deprecated
 LD           = /opt/exp_software/gerda/common/sw/binutils/linux-scientific-6-x86_64/2.25/bin/ld -m elf_x86_64
-LDFLAGS      = -g -O2 
+LDFLAGS      = -g -O2
 
 # ----------------------------------------------------------------------
 # The following definitions rely on the script bat-config being
@@ -45,6 +45,9 @@ LIBS += -L$(GERDA_BASE_DIR)/lib -lgerda-ada-core -lgerda-ada-calib-ged -lgerda-a
 CXXFLAGS += -I$(GERDA_BASE_DIR)/include/gelatio
 LIBS += -L$(GERDA_BASE_DIR)/lib -lGELATIODecoders -lGELATIOManagement -lGELATIOModules -lGELATIOUtilities
 
+# ProgressBar
+CXXFLAGS += -I/home/sturm/Programs/progressbar
+LIBS += -L/home/sturm/Programs/progressbar -lProgressBar
 
 # List of all classes (models) used in the program
 # Add classes to the end. Backslash indicates continuation

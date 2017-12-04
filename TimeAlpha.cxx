@@ -27,13 +27,19 @@
 #include "FileMap.h"
 #include "DataLoader.h"
 
+#include "GETRunConfiguration.hh"
+#include "GERunConfigurationManager.hh"
+
+#include "ProgressBar.h"
+
 using namespace std;
 using namespace gada;
 
 // ---------------------------------------------------------
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
-	fDetectorType = all;
+	fDetectorType = kUNKNOWN; // all detectors
+	fDetectorEnriched = true;
 //	fModel = OnlyLin;
 //	fModel = OnlyExp;
 	fModel = LinAndExp;
@@ -48,6 +54,13 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	fVTimeAlpha = vector<double>(0);
 	fVLiveTimeFraction = vector<double>(0);
 
+	DefineParametersAndPriors();
+
+	cout << "Created model" << endl;
+}
+
+int TimeAlpha::DefineParametersAndPriors()
+{
 	// constructor
 	// define parameters here. For example:
 	AddParameter( "constant", 0., 15. );
@@ -58,7 +71,6 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 	switch ( fModel )
 	{
 		case LinAndExp:
-			fModelName = "linexp";
 			fModelName = "linexp";
 			SetPriorConstant( 0 );
 			SetPriorConstant( 1 );
@@ -81,10 +93,14 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 			SetPriorDelta( 1, 0. );
 			SetPriorDelta( 2, 0. );
 			break;
+		default:
+			cout << "Model not set!" << endl;
+			return -1;
 	}
 
-	cout << "Created model" << endl;
+	return 0;
 }
+
 
 // ---------------------------------------------------------
 TimeAlpha::~TimeAlpha() {
@@ -94,18 +110,56 @@ TimeAlpha::~TimeAlpha() {
 }
 
 // ---------------------------------------------------------
+int TimeAlpha::InitializeHistograms()
+{
+	ResetHistograms();
+
+	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", fNBins, fHMinimum, fHMaximum );
+	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", fNBins, fHMinimum, fHMaximum );
+
+	fHTimeAlpha_fine = new TH1D( "HTimeAlpha_fine", "HTimeAlpha_fine", (int)fHMaximum, fHMinimum, fHMaximum );
+	fHLiveTimeFraction_fine = new TH1D( "HLiveTimeFraction_fine", "HLiveTimeFraction_fine", (int)fHMaximum, fHMinimum, fHMaximum );
+
+	if( fHTimeAlpha && fHLiveTimeFraction && fHTimeAlpha_fine && fHLiveTimeFraction_fine )
+		return 0;
+	else
+		return -1;
+}
+
+// ---------------------------------------------------------
 // Read Data from Runs key list tier3
 // ---------------------------------------------------------
-int TimeAlpha::ReadData( string keylist )
+int TimeAlpha::ReadDataPhaseII( string keylist )
 {
+	string MU_CAL = getenv("MU_CAL");
+
+	// check if $MU_CAL is set
+	if( MU_CAL == "" )
+	{
+		cout << "Environment variable MU_CAL not set. Have it point to the directory where runconfiguration.db can be found.\n"
+			 << "On LNGS that would be e.g. /nfs/gerda5/gerda-data/blind/active/meta/config/_aux/geruncfg " << endl;
+		return -1;
+	}
+
+	cout << "MU_CAL = " << MU_CAL << endl;
+
+	// initialize run configuration manager
+	GERunConfigurationManager * RunConfManager = new GERunConfigurationManager();
+	GETRunConfiguration * RunConf = 0;
+	RunConfManager -> AllowRunConfigurationSwitch(true);
+	RunConfManager -> SetVerbosity(1);
+
+	// tell the data map where to find everything
 	string GERDA_PHASEII_DATA = getenv("GERDA_PHASEII_DATA");
 	string GERDA_DATA_SETS = getenv("GERDA_DATA_SETS"); GERDA_DATA_SETS += "/";
 	string data_set = GERDA_DATA_SETS; data_set += keylist;
 
-	cout << "Reading data from keylist: " << data_set << endl;
+	cout << "Reading from data dir: " << GERDA_PHASEII_DATA << endl;
+	cout << "\t data set dir: " << GERDA_DATA_SETS << endl;
+	cout << "\t from keylist: " << data_set << endl;
 	cout << "This may take a while..." << endl;
 
-	//
+	// setting FileMap and DataLoader
 	gada::FileMap myMap;
 	myMap.SetRootDir( GERDA_PHASEII_DATA );
 	myMap.BuildFromListOfKeys( data_set );
@@ -122,108 +176,107 @@ int TimeAlpha::ReadData( string keylist )
 	// fill the data in histograms
 	int eventChannelNumber;
 	unsigned long long timestamp;
-	unsigned int decimalTimestamp;
-	vector<int> * firedFlag = new vector<int>(fNDetectors);
+	//unsigned int decimalTimestamp;
 	int multiplicity;
-	vector<double> * energy = new vector<double>(fNDetectors);
 	int isTP;
-	int isVetoed;
 	int isVetoedInTime;
+	vector<int> * firedFlag = new vector<int>(fNDetectors);
+	vector<double> * energy = new vector<double>(fNDetectors);
+	vector<double> * risetime = new vector<double>(fNDetectors);
 	vector<int> * failedFlag = new vector<int>(fNDetectors);
+	vector<int> * failedFlag_isPhysical = new vector<int>(fNDetectors);
+	vector<int> * failedFlag_isSaturated = new vector<int>(fNDetectors);
 
 	chain -> SetBranchAddress("eventChannelNumber", &eventChannelNumber);
 	chain -> SetBranchAddress("timestamp",&timestamp);
-	chain -> SetBranchAddress("decimalTimestamp",&decimalTimestamp);
-	chain -> SetBranchAddress("firedFlag", &firedFlag);
+	//chain -> SetBranchAddress("decimalTimestamp",&decimalTimestamp);
 	chain -> SetBranchAddress("multiplicity",&multiplicity);
-	chain -> SetBranchAddress("rawEnergyGauss",&energy);
-	chain -> SetBranchAddress("isVetoed", &isVetoed);
 	chain -> SetBranchAddress("isTP",&isTP);
 	chain -> SetBranchAddress("isVetoedInTime", &isVetoedInTime);
-	chain -> SetBranchAddress("failedFlag",&failedFlag);
+	chain -> SetBranchAddress("firedFlag", &firedFlag);
+	chain -> SetBranchAddress("rawEnergyGauss",&energy);
+	chain -> SetBranchAddress("risetime",&risetime);
+	chain -> SetBranchAddress("failedFlag_isPhysical",&failedFlag_isPhysical);
+	chain -> SetBranchAddress("failedFlag_isSaturated",&failedFlag_isSaturated);
 
-	// Prepare histograms cut the last piece of data if it doen't fit in the 20 days scheme
-	unsigned long long secondsInAnHour= 60 * 60;
+	chain -> GetEntry( 0 ); // Get timestamp of first event in chain
+	unsigned long long time0 = timestamp; // time in hours
 
-	chain->GetEntry(0);
+	chain -> GetEntry( nentries ); // Get timestamp of last event in chain
+	unsigned long long timeN = timestamp; // time in hours
 
-	double time0 = (double)timestamp / (double)secondsInAnHour; // time in hours
+	// calculate fit interval in days
+	int timeDays = (int)( ( timeN - time0 ) / ( 60. * 60. * 24. ) );
 
-	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", fNBins, fHMinimum, fHMaximum );
-	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", fNBins, fHMinimum, fHMaximum );
+	SetNBinsHistograms( timeDays/fBinning + 1, 0., timeDays - timeDays%fBinning + fBinning );
+	InitializeHistograms();
 
-	TH1D * HTimeAlpha_fine = new TH1D( "HTimeAlpha_fine", "HTimeAlpha_fine", (int)fHMaximum, fHMinimum, fHMaximum );
-	TH1D * HLiveTimeFraction_fine = new TH1D( "HLiveTimeFraction_fine", "HLiveTimeFraction_fine", (int)fHMaximum, fHMinimum, fHMaximum );
+	cout << "Fitting " << timeDays << "days of data." << endl;
 
-	cout << "Loop over event chain." << endl;
+	cout << "Starting loop over event chain..." << endl;
 
-	vector<int> enrBEGeChannels = {	0,1,2,3,4,5,6,7,
-									11,12,13,14,15,16,17,18,
-									19,20,21,22,23,24,25,26,
-									30,31,32,33,34,35 };
-	vector<int> enrCoaxChannels = {8,9,10,27,28,29,36};
-	vector<int> natCoaxChannels = {37,38,39};
+	// ProgressBar
+	ProgressBar bar( nentries, '#', false );
 
 	for( int e = 0; e < nentries; e++ )
 	{
+		bar.Update();
+
 		chain->GetEntry(e);
 
-		double time = (double)timestamp / (double)secondsInAnHour;
-		time -= time0;
-
-		if( e%10000 == 0 ) cout << "h: " << time << " d: " << time/24. << endl;
+		unsigned long long time = timestamp - time0;
 
 		if( isTP )
 		{
-			fHLiveTimeFraction->Fill( time / 24. );
-			HLiveTimeFraction_fine->Fill( time / 24. );
+			fHLiveTimeFraction -> Fill( time );
+			fHLiveTimeFraction_fine -> Fill( time );
 			continue;
 		}
 
 		// Apply cuts
-		if( multiplicity != 1 ) continue;
-		if( isVetoed ) 	continue;
-		if( isVetoedInTime ) 	continue;
+		if( isVetoedInTime ) continue;
+		if( multiplicity > 1 ) continue;
 
-		for( int i = 0; i < fNDetectors; i++ )
+		for( int d = 0; d < fNDetectors; d++ )
 		{
-			if( failedFlag->at(i) ) continue;
+			if( !firedFlag -> at( d ) ) continue;
+			if( failedFlag -> at( d ) ) continue;
 
-			if( fDetectorType == enrBEGe )
-			{
-				if( find( enrBEGeChannels.begin(), enrBEGeChannels.end(), i) == enrBEGeChannels.end() )
-					continue;
-			}
-			if( fDetectorType == enrCoax )
-			{
-				if( find( enrCoaxChannels.begin(), enrCoaxChannels.end(), i) == enrCoaxChannels.end() )
-					continue;
-			}
-			if( fDetectorType == natCoax )
-			{
-				if( find( natCoaxChannels.begin(), natCoaxChannels.end(), i) == natCoaxChannels.end() )
-					continue;
-			}
+			// use kUNKNOWN to select all detectors
+			RunConf = RunConfManager -> GetRunConfiguration( timestamp );
+			DetectorType_t dType = RunConf -> GetDetector( d ) -> GetDetectorType(); // kIsBEGe=1, kIsCOAX=2, kUNKNOWN=3
+			Bool_t dIsEnriched = RunConf -> GetDetector( d ) -> IsEnriched();
 
-			if( energy->at(i) > 3500. && energy->at(i) < 5300. )
+			if( !RunConf -> IsOn( d ) ) continue;
+			if( dType != fDetectorType ) continue;
+			if( fDetectorType != kUNKNOWN && dIsEnriched != fDetectorEnriched ) continue;
+
+			if( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500.
+				|| !failedFlag_isSaturated -> at( d ) )
 			{
-				fHTimeAlpha->Fill( time / 24. );
-				HTimeAlpha_fine->Fill( time / 24. );
+				fHTimeAlpha -> Fill( time );
+				fHTimeAlpha_fine -> Fill( time );
+
+				if(  failedFlag_isSaturated -> at( d ) )
+					cout << "Saturated Event: " << e << "(" << d << ")" << endl;
 			}
 		}
 	}
 
-	// Expected number of TP in 1 day: Test Pulser rate is 0.05Hz = 1/20s
-	double TPExpected = 24. * 60. * 60. / 20.;
+	cout << "...DONE" << endl;
 
-	fHLiveTimeFraction->Scale( 1./( TPExpected * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
-	HLiveTimeFraction_fine->Scale( 1./( TPExpected * HLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
+	// Test Pulser rate is 0.05Hz = 1/20s
+	double TPFrequency = 1. / 20.;
+
+	// Scale live time fraction with TP rate
+	fHLiveTimeFraction -> Scale( 1./( TPFrequency * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
+	fHLiveTimeFraction_fine -> Scale( 1./( TPFrequency * fHLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
 	TFile * out = new TFile( "TimeAlpha_Data.root", "RECREATE" );
-	HTimeAlpha_fine -> Write();
 	fHTimeAlpha -> Write();
-	HLiveTimeFraction_fine -> Write();
+	fHTimeAlpha_fine -> Write();
 	fHLiveTimeFraction -> Write();
+	fHLiveTimeFraction_fine -> Write();
 	out -> Close();
 
 	FillDataArrays();
@@ -282,12 +335,13 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
 		double lambda = constant * BinWidth - amplitude * tau * ( exp( -t2/tau ) - exp( -t1/tau ) );
 		lambda *= fVLiveTimeFraction.at(b);
 
-	    	double data = fVTimeAlpha.at(b);
+		if( lambda <= 0. ) continue;
 
-	    	double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
+	    double data = fVTimeAlpha.at(b);
 
-		// require at least 10% livetime fraction otherwise ignore data point
-		if( lambda > 0 ) logprob += sum;
+	    double sum = data * log(lambda) - lambda - BCMath::LogFact( (int)data );
+
+		logprob += sum;
 	  }
 
 	  return logprob;
@@ -300,15 +354,15 @@ double TimeAlpha::EstimatePValue()
 	//Allen's routine for the evaluation of p-value
   	//This is derived from PRD 83 (2011) 012004, appendix
   	//taken from Luciano
-  	
+
 	double logp0 = LogLikelihood( GetBestFitParameters() ); //likelihood at the mode
 
   	/*
     	Now we initialize the Markov Chain by setting the number of entries in a bin to
-    	the integer 
+    	the integer
     	part of the mean in that bin.  This will give the maximum possible likelihood.
   	*/
-  	
+
 	double sumlog = 0;
 
 	/* mean is the array where you have the expected mean in each bin (calculated
@@ -382,7 +436,7 @@ double TimeAlpha::EstimatePValue()
     		  		}
     	  		}
       		}
-      	
+
 		if ( sumlog < logp0 ) Pgood++;
   	}
 
@@ -443,7 +497,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	cout << BestFitParameterErrors1s->at(0) << " " <<	BestFitParameterErrors1s->at(1) << " "<<	BestFitParameterErrors1s->at(2) << " " << endl;
 
 	TCanvas * c = new TCanvas("c1");
-	modelfunction->Draw();
+	modelfunction -> Draw();
 
 	TH1D * expected = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
 
@@ -465,7 +519,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 	}
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
-	c->Write();
+	c -> Write();
 	modelfunction -> Write();
 	fHTimeAlpha -> Write();
 	fHLiveTimeFraction -> Write();
@@ -478,7 +532,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 
 // ---------------------------------------------------------
 void TimeAlpha::WriteDistributions()
-{	
+{
 	TFile * test = new TFile( "posteriors.root", "RECREATE" );
 
 	for( uint i = 0; i < GetNParameters(); i++ )
@@ -489,7 +543,7 @@ void TimeAlpha::WriteDistributions()
 
 		histo -> Write();
 	}
-	
+
 	test -> Close();
 
 	return;

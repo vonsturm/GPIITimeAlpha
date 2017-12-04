@@ -17,7 +17,7 @@
 # compiler and flags
 CXX          = g++
 CXXFLAGS     = -g -O2 -Wall -fPIC -Wno-deprecated
-LD           = /opt/exp_software/gerda/common/sw/binutils/linux-scientific-6-x86_64/2.25/bin/ld -m elf_x86_64
+# LD           = /opt/exp_software/gerda/common/sw/binutils/linux-scientific-6-x86_64/2.25/bin/ld -m elf_x86_64
 LDFLAGS      = -g -O2
 
 # ----------------------------------------------------------------------
@@ -30,20 +30,24 @@ CXXFLAGS += $(shell bat-config --cflags)
 LIBS := $(shell bat-config --libs)
 
 # CUBA
-CXXFLAGS += -I$(CUBA_BASE_DIR)/include
-LIBS += -L$(CUBA_BASE_DIR)/lib -lcuba
+#CXXFLAGS += -I$(CUBA_BASE_DIR)/include
+#LIBS += -L$(CUBA_BASE_DIR)/lib -lcuba
 
 # ROOT
 CXXFLAGS += $(shell root-config --cflags)
 LIBS += $(shell root-config --libs) -lMinuit
 
 # GERDA-ADA
-CXXFLAGS += -I$(GERDA_BASE_DIR)/include/gerda-ada/
-LIBS += -L$(GERDA_BASE_DIR)/lib -lgerda-ada-core -lgerda-ada-calib-ged -lgerda-ada-dataprod -lgerda-ada-evtviewer -lgerda-ada-monitoring -lgerda-ada-psd-base -lgerda-ada-stats
+CXXFLAGS += $(shell gerda-ada-config --cflags)/gerda-ada/
+LIBS += $(shell gerda-ada-config --libs)
+
+# MGDO
+CXXFLAGS += $(shell mgdo-config --cflags)
+LIBS += $(shell mgdo-config --libs)
 
 # GELATIO
-CXXFLAGS += -I$(GERDA_BASE_DIR)/include/gelatio
-LIBS += -L$(GERDA_BASE_DIR)/lib -lGELATIODecoders -lGELATIOManagement -lGELATIOModules -lGELATIOUtilities
+CXXFLAGS += $(shell gelatio-config --cflags)
+LIBS += $(shell gelatio-config --libs)
 
 # ProgressBar
 CXXFLAGS += -I/home/sturm/Programs/progressbar

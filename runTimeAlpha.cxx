@@ -42,9 +42,12 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m -> SetNBinsHistograms( 180., 0., 180. );
-	m -> ReadData( keylist );
-	
+	m -> SetFittingDataSet( "enrBEGe" ); // enrBEGe, enrCoax, natCoax
+	m -> SetBinningInDays( 10 );
+
+	// NBinsHistograms( 180, 0., 180. );
+	m -> ReadDataPhaseII( keylist );
+
 	// set precision
 	if( precision == "kLow" ) 			m -> MCMCSetPrecision( BCEngineMCMC::kLow );
 	else if( precision == "kMedium" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kMedium );

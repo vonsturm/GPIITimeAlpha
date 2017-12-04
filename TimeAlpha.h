@@ -8,14 +8,16 @@
 #define __BAT__TIMEALPHA__H
 
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 
 #include "TH1D.h"
 
+#include "GETDetector.hh"
+
 #include <BAT/BCModel.h>
 
 // Enumerate variables for detector and model selection
-enum tGetype { enrBEGe, enrCoax, natCoax, all };
 enum tModel { LinAndExp, OnlyExp, OnlyLin };
 
 // This is a TimeAlpha header file.
@@ -29,8 +31,16 @@ class TimeAlpha : public BCModel {
 	TimeAlpha( const char * name = "TimeAlpha" );
 	~TimeAlpha();
 
-	int ReadData( std::string keylist );
+    int DefineParametersAndPriors();
 
+    // FIXME read a list of keylists instead
+	int ReadDataPhaseII( std::string keylist );
+    int ReadDataPhaseI();
+
+    void SetBinningInDays( int b ){ fBinning = b; };
+    int GetBinningInDays(){ return fBinning; };
+
+    // FIXME make me private
 	void SetNBinsHistograms( int n, double min, double max )
 	{
 		fNBins = n;
@@ -38,10 +48,29 @@ class TimeAlpha : public BCModel {
 		fHMaximum = max;
 	};
 
-	void SetDetectorType( tGetype det ){ fDetectorType = det; };
+    void ResetHistograms(){ fHTimeAlpha->Reset("MICES"); fHLiveTimeFraction->Reset("MICES");
+                            fHTimeAlpha_fine->Reset("MICES"); fHLiveTimeFraction_fine->Reset("MICES"); };
+
+    int InitializeHistograms();
+
+    // FIXME implement single detector reading
+    void SetFittingDataSet( std::string set )
+    {
+        if( set == "enrBEGe" ){ fDetectorType = kIsBEGe; fDetectorEnriched = true; }
+        else if( set == "enrCoax" ){ fDetectorType = kIsCOAX; fDetectorEnriched = true; }
+        else if( set == "natCoax" ){ fDetectorType = kIsCOAX; fDetectorEnriched = false; }
+        else
+            std::cout << "Data set unknown " << set << std::endl;
+    }
+
+	void SetDetectorType( DetectorType_t det ){ fDetectorType = det; };
+    DetectorType_t GetDetectorType(){ return fDetectorType; };
+
+    void SetDetectorEnriched( bool b ){ fDetectorEnriched = b; };
+    bool GetDetectorEnriched(){ return fDetectorEnriched; };
 
 	void SetModel( tModel model ){ fModel = model; };
-	
+
 	void SetModelName( std::string name ){ fModelName = name; };
 	std::string GetModelName( tModel model ){ return fModelName; };
 
@@ -51,7 +80,7 @@ class TimeAlpha : public BCModel {
 	// Methods to overload, see file TimeAlpha.cxx
 	double LogLikelihood(const std::vector<double> & parameters);
 	double EstimatePValue();
-	
+
 	// double LogAPrioriProbability(const std::vector<double> & parameters);
 
 	void WriteOutput( std::string outputfilename );
@@ -59,19 +88,24 @@ class TimeAlpha : public BCModel {
 
  private:
 
-	tGetype fDetectorType;
+	DetectorType_t fDetectorType;
+    bool fDetectorEnriched;
 	tModel fModel;
 
 	std::string fModelName;
 
+    // FIXME read nDet from RunConfiguration
 	int fNDetectors = 40;
 
+    int fBinning;
 	int fNBins;
 	double fHMaximum, fHMinimum;
 
 	// Data arrays with time distribution of events and livetime fraction in time (counting pulser events)
 	TH1D * fHTimeAlpha;
+    TH1D * fHTimeAlpha_fine;
 	TH1D * fHLiveTimeFraction;
+    TH1D * fHLiveTimeFraction_fine;
 
 	double fLTLimit = 0.;
 

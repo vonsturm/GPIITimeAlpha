@@ -1,12 +1,12 @@
 ////////////////////////////////////
 /////  N.Becerici-Schmidt   ////////
-//////// 10 October 2012 /////////// 
+//////// 10 October 2012 ///////////
 ////////////////////////////////////
 
 #include <TROOT.h>
 #include <TUnixSystem.h>
 
-#include <iostream>  
+#include <iostream>
 #include <iomanip>
 
 #include <TFile.h>
@@ -50,7 +50,7 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
   gROOT->ForceStyle();
 //.............................................................................//
 
-  TFile* fitfile = new TFile( filename.c_str() ); 
+  TFile* fitfile = new TFile( filename.c_str() );
 
   // read in the histograms
 
@@ -62,7 +62,7 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
 
   TF1 * fModelFunction = (TF1*) fitfile->Get("modelfunction");
   TH1D * hLiveTimeFraction = (TH1D*) fitfile->Get("HLiveTimeFraction");
- 
+
   vector<TGraph*> NotConsidered;
   for( int i = 1; i <= hLiveTimeFraction->GetNbinsX(); i++ )
   {
@@ -98,7 +98,7 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
   pad2 -> Draw();
 
   pad1->cd();
-  
+
   fModelFunction -> GetYaxis() -> SetRangeUser( 0, 20 );
   fModelFunction -> GetYaxis() -> SetTitle("cts / day");
   fModelFunction -> GetYaxis() -> SetTitleOffset(0.5);
@@ -138,7 +138,7 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
   myLeg1 -> SetBorderSize(0);
   myLeg1 -> SetFillColor(kWhite);
   myLeg1 -> SetTextSize(0.07);
-  myLeg1 -> SetTextFont(42); 
+  myLeg1 -> SetTextFont(42);
   myLeg1 -> AddEntry( fModelFunction,"model","L");
   myLeg1 -> AddEntry( hLiveTimeFraction,"livetime fraction","L");
 //  myLeg1 -> AddEntry( NotConsidered.at(0),"Skipped Bins","F");
@@ -154,11 +154,11 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
 
   TH1D * hmodel1 = new TH1D();
   hExpectedEvents->Copy(*hmodel1);
-  hmodel1->GetXaxis()->SetRangeUser(Xlow, Xup); 
+  hmodel1->GetXaxis()->SetRangeUser(Xlow, Xup);
 
   TH1D * hdata1 = new TH1D();
   hdata->Copy(*hdata1);
-  hdata1->GetXaxis()->SetRangeUser(Xlow, Xup); 
+  hdata1->GetXaxis()->SetRangeUser(Xlow, Xup);
 
   hdata1->GetYaxis()->SetTitle("data/model ratio ");
   hdata1->GetXaxis()->SetTitle("time [days]");
@@ -205,11 +205,11 @@ void PlotPoisson_TimeAlpha( string filename, string outfilename = "default.root"
   myLeg14->SetTextFont(42);
   TH1D*h3=new TH1D();
   h3->SetFillColor(kRed-7);
-  myLeg14->AddEntry(h3,"99.9%","F");
+  myLeg14->AddEntry(h3,"99.7%","F");
 
   RA_PoiStat * h2_=  new RA_PoiStat();
-  h2_->RA_PoiStat::Plot_w3ProbLines_ratio( hmodel1, hdata1, 1., 0., "Smallest", 0.68, 0.95, 0.999, "infinite" );
-//  h2_->RA_PoiStat::Plot_w3ProbLines_lin( hmodel1, hdata1, 1., 0., "Smallest", 0.68, 0.95, 0.999, "lin", "infinite" );
+  h2_->RA_PoiStat::Plot_w3ProbLines_ratio( hmodel1, hdata1, 1., 0., "Smallest", 0.68, 0.95, 0.997, "infinite" );
+//  h2_->RA_PoiStat::Plot_w3ProbLines_lin( hmodel1, hdata1, 1., 0., "Smallest", 0.68, 0.95, 0.997, "lin", "infinite" );
 /*
   for( int n = 0; n < NotConsidered.size(); n++ )
   {

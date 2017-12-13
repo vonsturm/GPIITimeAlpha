@@ -151,6 +151,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 
 	// tell the data map where to find everything
 	string GERDA_PHASEII_DATA = getenv("GERDA_PHASEII_DATA");
+	GERDA_PHASEII_DATA += "/gen";
 	string GERDA_DATA_SETS = getenv("GERDA_DATA_SETS"); GERDA_DATA_SETS += "/";
 	string data_set = GERDA_DATA_SETS; data_set += keylist;
 

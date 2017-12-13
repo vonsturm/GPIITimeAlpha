@@ -13,6 +13,8 @@
 
 using namespace std;
 
+void Usage();
+
 int main( int argc, char* argv[]  )
 {
 	string keylist;
@@ -26,11 +28,13 @@ int main( int argc, char* argv[]  )
 	}
 	else if( argc > 3 )
 	{
-		cout << "Too many parameters. Give keylist and precision rest will be ignored." << endl;
+		cout << "Too many parameters" << endl;
+		Usage();
 	}
 	else
 	{
-		cout << "Not enough parameters given. Give keylist and optional precision. Exit!" << endl;
+		cout << "Not enough parameters" << endl;
+		Usage();
 		return -1;
 	}
 
@@ -49,10 +53,10 @@ int main( int argc, char* argv[]  )
 	m -> ReadDataPhaseII( keylist );
 
 	// set precision
-	if( precision == "kLow" ) 			m -> MCMCSetPrecision( BCEngineMCMC::kLow );
+	if( precision == "kLow" )		m -> MCMCSetPrecision( BCEngineMCMC::kLow );
 	else if( precision == "kMedium" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kMedium );
 	else if( precision == "kHigh" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kHigh );
-	else if( precision == "kVeryHigh" ) m -> MCMCSetPrecision( BCEngineMCMC::kVeryHigh );
+	else if( precision == "kVeryHigh" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kVeryHigh );
 
 	BCLog::OutSummary("Test model created");
 
@@ -104,4 +108,13 @@ int main( int argc, char* argv[]  )
 	BCLog::CloseLog();
 
 	return 0;
+}
+
+
+void Usage()
+{
+
+
+
+	return;
 }

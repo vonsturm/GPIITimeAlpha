@@ -50,8 +50,8 @@ CXXFLAGS += $(shell gelatio-config --cflags)
 LIBS += $(shell gelatio-config --libs)
 
 # ProgressBar
-CXXFLAGS += -I/home/sturm/Programs/progressbar
-LIBS += -L/home/sturm/Programs/progressbar -lProgressBar
+CXXFLAGS += -I/lfs/l2/gerda/Hades/Analysis/Users/sturm/BAT/progressbar
+LIBS += -L/lfs/l2/gerda/Hades/Analysis/Users/sturm/BAT/progressbar -lProgressBar
 
 # List of all classes (models) used in the program
 # Add classes to the end. Backslash indicates continuation

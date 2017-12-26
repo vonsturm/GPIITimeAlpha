@@ -63,8 +63,8 @@ int TimeAlpha::DefineParametersAndPriors()
 {
 	// constructor
 	// define parameters here. For example:
-	AddParameter( "constant", 0., 15. );
-	AddParameter( "amplitude", 0., 25. );
+	AddParameter( "constant", 0., 4. );
+	AddParameter( "amplitude", 0., 5. );
 	AddParameter( "halflife", 137., 140. );
 
 	// and set priors, if using built-in priors. For example:

@@ -331,9 +331,11 @@ double TimeAlpha::LogLikelihood(const std::vector<double> & parameters)
 	// the built in functions such as BCMath::LogPoisson helpful.
 	// Return the logarithm of this likelood
 
-	double constant = parameters[0];
-	double amplitude = parameters[1];
-	double halflife = parameters[2];
+	// translate parameters given in days in seconds
+	double secondsInOneDay = 24.*60.*60.;
+	double constant = parameters[0] / secondsInOneDay;
+	double amplitude = parameters[1] / secondsInOneDay;
+	double halflife = parameters[2] * secondsInOneDay;
 
 	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
 
@@ -371,7 +373,8 @@ double TimeAlpha::EstimatePValue()
   	//This is derived from PRD 83 (2011) 012004, appendix
   	//taken from Luciano
 
-	double logp0 = LogLikelihood( GetBestFitParameters() ); //likelihood at the mode
+	vector<double> parameters = GetBestFitParameters();
+	double logp0 = LogLikelihood( parameters ); //likelihood at the mode
 
   	/*
     	Now we initialize the Markov Chain by setting the number of entries in a bin to
@@ -389,10 +392,11 @@ double TimeAlpha::EstimatePValue()
   	vector<double> mean( fNBins, 0 );
 	vector<int> nom( fNBins, 0 );
 
-  	vector<double> parameters = GetBestFitParameters();
-	double constant = parameters[0];
-	double amplitude = parameters[1];
-	double halflife = parameters[2];
+	double secondsInOneDay = 24.*60.*60.;
+
+	double constant = parameters[0] / secondsInOneDay;
+	double amplitude = parameters[1] / secondsInOneDay;
+	double halflife = parameters[2] * secondsInOneDay;
 
 	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
 
@@ -486,7 +490,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 
 		double value =  parHisto->GetMode();
 
-		BestFitParameters -> push_back( value );
+		 -> push_back( value );
 
 		double xmin, xmax;
 	    parHisto->GetSmallestInterval( xmin, xmax, 0.683 );

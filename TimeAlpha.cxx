@@ -245,9 +245,10 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 
 			// use kUNKNOWN to select all detectors
 			RunConf = RunConfManager -> GetRunConfiguration( timestamp );
-			DetectorType_t dType = RunConf -> GetDetector( d ) -> GetDetectorType(); // kIsBEGe=1, kIsCOAX=2, kUNKNOWN=3
-			Bool_t dIsEnriched = RunConf -> GetDetector( d ) -> IsEnriched();
-			string dDetName = RunConf -> GetDetector( d ) -> GetDetName();
+			const GETDetector * det = RunConf -> GetDetector( d );
+			DetectorType_t dType = det -> GetDetectorType(); // kIsBEGe=1, kIsCOAX=2, kUNKNOWN=3
+			Bool_t dIsEnriched = det -> IsEnriched();
+			TString dDetName = det -> GetDetectorTable() -> at( det->GetID() ) -> GetName();
 
 			if( !RunConf -> IsOn( d ) ) continue;
 			if( fSingleDetectorFit ){ if( dDetName != fDataSet ) continue; }
@@ -257,7 +258,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 				if( dIsEnriched != fDetectorEnriched ) continue;
 			}
 
-			if( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500.
+			if( ( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500. )
 				|| !failedFlag_isSaturated -> at( d ) )
 			{
 				fHTimeAlpha -> Fill( time );

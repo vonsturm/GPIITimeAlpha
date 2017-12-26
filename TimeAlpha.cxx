@@ -497,11 +497,11 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	copyHTimeAlpha -> Scale( 1./fBinning );
 	copyHTimeAlpha -> GetXaxis() -> SetTimeDisplay(1);
 	copyHTimeAlpha -> GetXaxis() -> SetTimeFormat( timeformat.c_str() );
-	copyHTimeAlpha -> GetXaxis() -> SetTitle( date );
-	copyHTimeAlpha -> GetYaxis() -> SetTitle( alphas / live-day );
+	copyHTimeAlpha -> GetXaxis() -> SetTitle( "date" );
+	copyHTimeAlpha -> GetYaxis() -> SetTitle( "alphas / live-day" );
 	copyHTimeAlpha -> GetYaxis() -> SetNdivisions( 0 + 100*5 + 10000*7 );
 
-	TCanvas * c = new TCanvas( 1000, 500 );
+	TCanvas * c = new TCanvas( "TimeAlpha", Form( "Time dependence of alpha events: %s", fDataSet.c_str() ), 1000, 500 );
 	copyHTimeAlpha -> Draw();
 	MF -> Draw("same");
 	MF_up -> Draw("same");

@@ -87,7 +87,7 @@ int main( int argc, char* argv[]  )
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots("./out/TimeAlpha_update.pdf","histo","histo");
+	summary -> PrintKnowledgeUpdatePlots("./out/TimeAlpha_update.pdf");
 	summary -> PrintParameterPlot("./out/TimeAlpha_parameters.pdf");
 	summary -> PrintCorrelationPlot("./out/TimeAlpha_correlation.pdf");
 	summary -> PrintCorrelationMatrix("./out/TimeAlpha_correlationMatrix.pdf");

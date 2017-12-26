@@ -500,6 +500,7 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	copyHTimeAlpha -> GetXaxis() -> SetTitle( "date" );
 	copyHTimeAlpha -> GetYaxis() -> SetTitle( "alphas / live-day" );
 	copyHTimeAlpha -> GetYaxis() -> SetNdivisions( 7 + 100*5 + 10000*0 );
+	copyHTimeAlpha -> GetYaxis() -> SetTitleOffset( 0.7 );
 
 	TCanvas * c = new TCanvas( "TimeAlpha", Form( "Time dependence of alpha events: %s", fDataSet.c_str() ), 1000, 500 );
 	copyHTimeAlpha -> Draw();

@@ -210,7 +210,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	int timeInDays = (int)( ( timeN - time0 ) / ( 60. * 60. * 24. ) );
 
 	int bins = timeInDays/fBinning + 1;
-	double min = 0., max = timeInDays - timeInDays%fBinning + fBinning;
+	double min = 0., max = ( timeInDays - timeInDays%fBinning + fBinning ) * ( 60. * 60. * 24. );
 	SetNBinsHistograms( bins, min, max );
 	InitializeHistograms();
 

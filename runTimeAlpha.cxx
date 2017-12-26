@@ -78,8 +78,6 @@ int main( int argc, char* argv[]  )
 	// draw all marginalized distributions into a PDF file
 //	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-	m -> WriteOutput( "./out/TimeAlpha_model.root", -0.81 );
-
 	double pValue = m -> EstimatePValue();
 	cout << "P-Value estimated with MCMC algorithm: " << pValue << endl;
 
@@ -91,6 +89,14 @@ int main( int argc, char* argv[]  )
 	summary -> PrintParameterPlot("./out/TimeAlpha_parameters.pdf");
 	summary -> PrintCorrelationPlot("./out/TimeAlpha_correlation.pdf");
 	summary -> PrintCorrelationMatrix("./out/TimeAlpha_correlationMatrix.pdf");
+
+	// int index = 0 * npar + 1;
+    // double corr = summary -> fCorrCoeff.at(index);
+	double corr = m -> GetMarginalized(0, 1) -> GetHistogram() -> GetCorrelationFactor();
+
+	cout << "Correlation factor between constant and amplitude parameters" << endl;
+
+	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", fDataSet.c_str() ), corr );
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );

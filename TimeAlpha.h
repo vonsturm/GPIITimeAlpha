@@ -64,7 +64,7 @@ class TimeAlpha : public BCModel {
             { fDetectorType = kIsCOAX; fDetectorEnriched = true; }
         else if( set == "natCoax" || set.find("GTF") == 0 )
             { fDetectorType = kIsCOAX; fDetectorEnriched = false; }
-        else if( set == "all"){ fDetectorType = kUNKOWN; fDetectorType = kUNKOWN; }
+        else if( set == "all"){ fDetectorType = kUNKNOWN; fDetectorType = kUNKNOWN; }
         else if( set.find("GD") == 0 || set.find("ANG") == 0 ||
                  set.find("RG") == 0 || set.find("GTF") == 0 )
         {

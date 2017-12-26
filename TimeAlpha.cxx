@@ -251,7 +251,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 
 			if( !RunConf -> IsOn( d ) ) continue;
 			if( fSingleDetectorFit ){ if( dDetName != fDataSet ) continue; }
-			else if( fDetectorType != kUNKOWN && fDetectorEnriched != kUNKOWN )
+			else if( fDetectorType != kUNKNOWN && fDetectorEnriched != kUNKNOWN )
 			{
 				if( dType != fDetectorType ) continue;
 				if( dIsEnriched != fDetectorEnriched ) continue;

@@ -5,11 +5,13 @@
 // BAT can be downloaded from http://mpp.mpg.de/bat
 // ***************************************************************
 
-#include <BAT/BCLog.h>
-#include <BAT/BCAux.h>
-#include <BAT/BCSummaryTool.h>
+#include "BAT/BCLog.h"
+#include "BAT/BCAux.h"
+#include "BAT/BCSummaryTool.h"
+#include "BAT/BCH2D.h"
 
 #include "TimeAlpha.h"
+#include "TH2D.h"
 
 using namespace std;
 
@@ -85,10 +87,10 @@ int main( int argc, char* argv[]  )
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots("./out/TimeAlpha_update.pdf");
-	summary -> PrintParameterPlot("./out/TimeAlpha_parameters.pdf");
-	summary -> PrintCorrelationPlot("./out/TimeAlpha_correlation.pdf");
-	summary -> PrintCorrelationMatrix("./out/TimeAlpha_correlationMatrix.pdf");
+	summary -> PrintKnowledgeUpdatePlots( Form( "./out/%s_TimeAlpha_update.pdf", m->GetDataSet().c_str() ) );
+	summary -> PrintParameterPlot( Form( "./out/%s_TimeAlpha_parameters.pdf", m->GetDataSet().c_str() ) );
+	summary -> PrintCorrelationPlot( Form( "./out/%s_TimeAlpha_correlation.pdf", m->GetDataSet().c_str() ) );
+	summary -> PrintCorrelationMatrix( Form( "./out/%s_TimeAlpha_correlationMatrix.pdf", m->GetDataSet().c_str() ) );
 
 	// int index = 0 * npar + 1;
     // double corr = summary -> fCorrCoeff.at(index);
@@ -96,13 +98,13 @@ int main( int argc, char* argv[]  )
 
 	cout << "Correlation factor between constant and amplitude parameters" << endl;
 
-	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", fDataSet.c_str() ), corr );
+	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", m->GetDataSet().c_str() ), corr );
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	m -> PrintResults("./out/TimeAlpha_results.txt");
+	m -> PrintResults( Form( "./out/%s_TimeAlpha_results.txt", m->GetDataSet().c_str() ) );
 
 	delete m;
 

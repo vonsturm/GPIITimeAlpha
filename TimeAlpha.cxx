@@ -285,7 +285,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	fHLiveTimeFraction -> Scale( 1./( TPFrequency * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
 	fHLiveTimeFraction_fine -> Scale( 1./( TPFrequency * fHLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
-	TFile * out = new TFile( "./out/TimeAlpha_Data.root", "RECREATE" );
+	TFile * out = new TFile( Form( "./out/%s_TimeAlpha_Data.root", fDataSet.c_str() ), "RECREATE" );
 	fHTimeAlpha -> Write();
 	fHTimeAlpha_fine -> Write();
 	fHLiveTimeFraction -> Write();
@@ -522,7 +522,7 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 // ---------------------------------------------------------
 void TimeAlpha::WriteDistributions()
 {
-	TFile * test = new TFile( "posteriors.root", "RECREATE" );
+	TFile * test = new TFile( Form("./out/%s_TimeAlphas_posteriors.root", fDataSet.c_str() ), "RECREATE" );
 
 	for( uint i = 0; i < GetNParameters(); i++ )
 	{

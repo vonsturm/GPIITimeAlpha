@@ -157,7 +157,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 
 	cout << "Reading from data dir: " << GERDA_PHASEII_DATA << endl;
 	cout << "\t data set dir: " << GERDA_DATA_SETS << endl;
-	cout << "\t from keylist: " << data_set << endl;
+	cout << "\t from keylist: " << keylist << endl;
 	cout << "This may take a while..." << endl;
 
 	// setting FileMap and DataLoader
@@ -207,12 +207,12 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	unsigned long long timeN = timestamp; // time in hours
 
 	// calculate fit interval in days
-	int timeDays = (int)( ( timeN - time0 ) / ( 60. * 60. * 24. ) );
+	int timeInDays = (int)( ( timeN - time0 ) / ( 60. * 60. * 24. ) );
 
-	SetNBinsHistograms( timeDays/fBinning + 1, 0., timeDays - timeDays%fBinning + fBinning );
+	SetNBinsHistograms( timeInDays/fBinning + 1, 0., timeInDays - timeInDays%fBinning + fBinning );
 	InitializeHistograms();
 
-	cout << "Fitting " << timeDays << "days of data." << endl;
+	cout << "Fitting " << timeInDays << "days of data." << endl;
 
 	cout << "Starting loop over event chain..." << endl;
 
@@ -247,10 +247,15 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 			RunConf = RunConfManager -> GetRunConfiguration( timestamp );
 			DetectorType_t dType = RunConf -> GetDetector( d ) -> GetDetectorType(); // kIsBEGe=1, kIsCOAX=2, kUNKNOWN=3
 			Bool_t dIsEnriched = RunConf -> GetDetector( d ) -> IsEnriched();
+			string dDetName = RunConf -> GetDetector( d ) -> GetDetName();
 
 			if( !RunConf -> IsOn( d ) ) continue;
-			if( dType != fDetectorType ) continue;
-			if( fDetectorType != kUNKNOWN && dIsEnriched != fDetectorEnriched ) continue;
+			if( fSingleDetectorFit ){ if( dDetName != fDataSet ) continue; }
+			else if( fDetectorType != kUNKOWN && fDetectorEnriched != kUNKOWN )
+			{
+				if( dType != fDetectorType ) continue;
+				if( dIsEnriched != fDetectorEnriched ) continue;
+			}
 
 			if( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500.
 				|| !failedFlag_isSaturated -> at( d ) )
@@ -273,7 +278,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	fHLiveTimeFraction -> Scale( 1./( TPFrequency * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
 	fHLiveTimeFraction_fine -> Scale( 1./( TPFrequency * fHLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
-	TFile * out = new TFile( "TimeAlpha_Data.root", "RECREATE" );
+	TFile * out = new TFile( "./out/TimeAlpha_Data.root", "RECREATE" );
 	fHTimeAlpha -> Write();
 	fHTimeAlpha_fine -> Write();
 	fHLiveTimeFraction -> Write();

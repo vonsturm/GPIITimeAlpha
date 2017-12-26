@@ -56,9 +56,20 @@ class TimeAlpha : public BCModel {
     // FIXME implement single detector reading
     void SetFittingDataSet( std::string set )
     {
-        if( set == "enrBEGe" ){ fDetectorType = kIsBEGe; fDetectorEnriched = true; }
-        else if( set == "enrCoax" ){ fDetectorType = kIsCOAX; fDetectorEnriched = true; }
-        else if( set == "natCoax" ){ fDetectorType = kIsCOAX; fDetectorEnriched = false; }
+        fDataSet = set;
+
+        if( set == "enrBEGe" || set.find("GD") == 0 )
+            { fDetectorType = kIsBEGe; fDetectorEnriched = true; }
+        else if( set == "enrCoax" || set.find("ANG") == 0 || set.find("RG") == 0 )
+            { fDetectorType = kIsCOAX; fDetectorEnriched = true; }
+        else if( set == "natCoax" || set.find("GTF") == 0 )
+            { fDetectorType = kIsCOAX; fDetectorEnriched = false; }
+        else if( set == "all"){ fDetectorType = kUNKOWN; fDetectorType = kUNKOWN; }
+        else if( set.find("GD") == 0 || set.find("ANG") == 0 ||
+                 set.find("RG") == 0 || set.find("GTF") == 0 )
+        {
+            fSingleDetectorFit = true;
+        }
         else
             std::cout << "Data set unknown " << set << std::endl;
     }
@@ -90,6 +101,8 @@ class TimeAlpha : public BCModel {
 
 	DetectorType_t fDetectorType;
     bool fDetectorEnriched;
+    bool fSingleDetectorFit;
+    std::string fDataSet;
 	tModel fModel;
 
 	std::string fModelName;

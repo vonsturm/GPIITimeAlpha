@@ -112,8 +112,6 @@ TimeAlpha::~TimeAlpha() {
 // ---------------------------------------------------------
 int TimeAlpha::InitializeHistograms()
 {
-	ResetHistograms();
-
 	fHTimeAlpha = new TH1D( "HTimeAlpha", "HTimeAlpha", fNBins, fHMinimum, fHMaximum );
 	fHLiveTimeFraction = new TH1D( "HLiveTimeFraction", "HLiveTimeFraction", fNBins, fHMinimum, fHMaximum );
 
@@ -200,20 +198,23 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	chain -> SetBranchAddress("failedFlag_isPhysical",&failedFlag_isPhysical);
 	chain -> SetBranchAddress("failedFlag_isSaturated",&failedFlag_isSaturated);
 
+	cout << "Branches are set" << endl;
+
 	chain -> GetEntry( 0 ); // Get timestamp of first event in chain
 	unsigned long long time0 = timestamp; // time in hours
 
-	chain -> GetEntry( nentries ); // Get timestamp of last event in chain
+	chain -> GetEntry( nentries - 1 ); // Get timestamp of last event in chain
 	unsigned long long timeN = timestamp; // time in hours
 
 	// calculate fit interval in days
 	int timeInDays = (int)( ( timeN - time0 ) / ( 60. * 60. * 24. ) );
 
-	SetNBinsHistograms( timeInDays/fBinning + 1, 0., timeInDays - timeInDays%fBinning + fBinning );
+	int bins = timeInDays/fBinning + 1;
+	double min = 0., max = timeInDays - timeInDays%fBinning + fBinning;
+	SetNBinsHistograms( bins, min, max );
 	InitializeHistograms();
 
-	cout << "Fitting " << timeInDays << "days of data." << endl;
-
+	cout << "Fitting " << timeInDays << " days of data." << endl;
 	cout << "Starting loop over event chain..." << endl;
 
 	// ProgressBar
@@ -273,7 +274,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 				fHTimeAlpha_fine -> Fill( time );
 
 				if(  failedFlag_isSaturated -> at( d ) )
-					cout << "Saturated Event: " << e << "(" << d << ")" << endl;
+					cout << " Saturated Event: " << e << "(" << d << ")" << endl;
 			}
 		}
 	}

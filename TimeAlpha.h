@@ -41,15 +41,12 @@ class TimeAlpha : public BCModel {
     int GetBinningInDays(){ return fBinning; };
 
     // FIXME make me private
-	void SetNBinsHistograms( int n, double min, double max )
-	{
-		fNBins = n;
-		fHMinimum = min;
-		fHMaximum = max;
-	};
-
-    void ResetHistograms(){ fHTimeAlpha->Reset("MICES"); fHLiveTimeFraction->Reset("MICES");
-                            fHTimeAlpha_fine->Reset("MICES"); fHLiveTimeFraction_fine->Reset("MICES"); };
+    void SetNBinsHistograms( int n, double min, double max )
+    {
+	fNBins = n;
+	fHMinimum = min;
+	fHMaximum = max;
+    };
 
     int InitializeHistograms();
 

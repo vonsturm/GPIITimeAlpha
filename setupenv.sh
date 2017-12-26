@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Setting environment for $HOSTNAME ..."
+
 if [[ $HOSTNAME = *"gerda-login"* ]]; then
 
 	export GERDA_PHASEII_DATA="/nfs/gerda5/gerda-data/blind/active"
@@ -23,3 +25,8 @@ fi
 
 export MU_CAL="$GERDA_META_DATA/config/_aux/geruncfg"
 export GERDA_DATA_SETS="$GERDA_META_DATA/data-sets/phy"
+
+echo "  * GERDA_PHASEII_DATA = $GERDA_PHASEII_DATA"
+echo "  * GERDA_META_DATA = $GERDA_META_DATA"
+echo "  * GERDA_DATA_SETS = $GERDA_DATA_SETS"
+echo "  * MU_CAL = $MU_CAL"

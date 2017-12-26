@@ -467,8 +467,10 @@ double TimeAlpha::EstimatePValue()
 
 
 // ---------------------------------------------------------
-void TimeAlpha::WriteOutput( string outputfilename, double corr )
+void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeformat )
 {
+	double secondsInOneDay = 24.*60.*60.;
+
 	const vector<double> BestFitMarginalized = GetBestFitParametersMarginalized();
 
 	const std::vector<double> BestFitGlobal = GetBestFitParameters();
@@ -476,26 +478,34 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr )
 
 	// only uncertainties on contant and amplitude parameters are taken into account
 	TF1 * MF = new TF1( "MF", "[0]+[1]*exp(-x*log(2.)/[2])", fHMinimum, fHMaximum );
-	MF -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2) );
+	MF -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2) * secondsInOneDay);
+	MF -> SetLineColor(kAzure-1); MF -> SetLineWidth(1);
 
 	TF1 * MF_up = new TF1( "MF_up", "[0]+[1]*exp(-x*log(2.)/[2]) + sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4] + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
-	MF_up -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2),
+	MF_up -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2) * secondsInOneDay,
 		BestFitGlobalErrors.at(0), BestFitGlobalErrors.at(1), corr );
+	MF_up -> SetLineColor(kAzure-1); MF_up -> SetLineStyle(2); MF_up -> SetLineWidth(1);
 
 	TF1 * MF_low = new TF1( "MF_low", "[0]+[1]*exp(-x*log(2.)/[2]) - sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4] + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
-	MF_low -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2),
+	MF_low -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2) * secondsInOneDay,
 		BestFitGlobalErrors.at(0), BestFitGlobalErrors.at(1), corr );
+	MF_low -> SetLineColor(kAzure-1); MF_low -> SetLineStyle(2); MF_low -> SetLineWidth(1);
+
+	TH1D * copyHTimeAlpha = (TH1D*)fHTimeAlpha -> Clone( "copyHTimeAlpha" );
+	copyHTimeAlpha -> Divide( fHLiveTimeFraction );
+	copyHTimeAlpha -> Sumw2();
+	copyHTimeAlpha -> Scale( 1./fBinning );
+	copyHTimeAlpha -> GetXaxis() -> SetTimeDisplay(1);
+	copyHTimeAlpha -> GetXaxis() -> SetTimeFormat( timeformat.c_str() );
 
 	TCanvas * c = new TCanvas();
-	fHTimeAlpha -> Draw();
-
-
-	MF -> Draw();
-	MF_up -> Draw();
-	MF_low -> Draw();
-
+	copyHTimeAlpha -> Draw();
+	MF -> Draw("same");
+	MF_up -> Draw("same");
+	MF_low -> Draw("same");
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
+	c -> Write();
 	MF -> Write();
 	MF_up -> Write();
 	MF_low -> Write();

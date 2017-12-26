@@ -78,7 +78,7 @@ int main( int argc, char* argv[]  )
 	// draw all marginalized distributions into a PDF file
 //	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-//	m -> WriteOutput( "TimeAlpha_model.root" );
+	m -> WriteOutput( "./out/TimeAlpha_model.root" );
 
 	double pValue = m -> EstimatePValue();
 	cout << "P-Value estimated with MCMC algorithm: " << pValue << endl;

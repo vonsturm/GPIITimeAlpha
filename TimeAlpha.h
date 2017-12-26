@@ -91,7 +91,9 @@ class TimeAlpha : public BCModel {
 
 	// double LogAPrioriProbability(const std::vector<double> & parameters);
 
-	void WriteOutput( std::string outputfilename, double corr = 0. );
+    // default is beginning of run 54
+	void WriteOutput( std::string outputfilename, double corr = 0.,
+            std::string timeformat = "%d/%m/%y%F2016-01-25 16:30:28" );
 	void WriteDistributions();
 
  private:

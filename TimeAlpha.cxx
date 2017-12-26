@@ -490,7 +490,7 @@ void TimeAlpha::WriteOutput( string outputfilename )
 
 		double value =  parHisto->GetMode();
 
-		 -> push_back( value );
+		BestFitParameters -> push_back( value );
 
 		double xmin, xmax;
 	    parHisto->GetSmallestInterval( xmin, xmax, 0.683 );

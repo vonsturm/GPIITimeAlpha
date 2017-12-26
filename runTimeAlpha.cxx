@@ -47,7 +47,7 @@ int main( int argc, char* argv[]  )
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
 	m -> SetFittingDataSet( "enrBEGe" ); // enrBEGe, enrCoax, natCoax, all, single detector
-	m -> SetBinningInDays( 10 );
+	m -> SetBinningInDays( 20 );
 
 	// NBinsHistograms( 180, 0., 180. );
 	m -> ReadDataPhaseII( keylist );
@@ -78,7 +78,7 @@ int main( int argc, char* argv[]  )
 	// draw all marginalized distributions into a PDF file
 //	m -> PrintAllMarginalized("TimeAlpha_plots.pdf");
 
-	m -> WriteOutput( "./out/TimeAlpha_model.root" );
+	m -> WriteOutput( "./out/TimeAlpha_model.root", -0.81 );
 
 	double pValue = m -> EstimatePValue();
 	cout << "P-Value estimated with MCMC algorithm: " << pValue << endl;

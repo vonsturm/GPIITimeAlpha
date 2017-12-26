@@ -1,6 +1,6 @@
 #define RA_PoiStat_cxx
 
-#include <RA_PoiStat.h>
+#include "RA_PoiStat.h"
 
 
 RA_PoiStat::RA_PoiStat()

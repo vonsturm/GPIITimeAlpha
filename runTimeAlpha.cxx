@@ -46,17 +46,17 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m -> SetFittingDataSet( "enrBEGe" ); // enrBEGe, enrCoax, natCoax
+	m -> SetFittingDataSet( "enrBEGe" ); // enrBEGe, enrCoax, natCoax, all, single detector
 	m -> SetBinningInDays( 10 );
 
 	// NBinsHistograms( 180, 0., 180. );
 	m -> ReadDataPhaseII( keylist );
 
 	// set precision
-	if( precision == "kLow" )		m -> MCMCSetPrecision( BCEngineMCMC::kLow );
+	if( precision == "kLow" )			m -> MCMCSetPrecision( BCEngineMCMC::kLow );
 	else if( precision == "kMedium" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kMedium );
 	else if( precision == "kHigh" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kHigh );
-	else if( precision == "kVeryHigh" ) 	m -> MCMCSetPrecision( BCEngineMCMC::kVeryHigh );
+	else if( precision == "kVeryHigh" ) m -> MCMCSetPrecision( BCEngineMCMC::kVeryHigh );
 
 	BCLog::OutSummary("Test model created");
 
@@ -87,16 +87,16 @@ int main( int argc, char* argv[]  )
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots("TimeAlpha_update.pdf");
-	summary -> PrintParameterPlot("TimeAlpha_parameters.pdf");
-	summary -> PrintCorrelationPlot("TimeAlpha_correlation.pdf");
-	summary -> PrintCorrelationMatrix("TimeAlpha_correlationMatrix.pdf");
+	summary -> PrintKnowledgeUpdatePlots("./out/TimeAlpha_update.pdf");
+	summary -> PrintParameterPlot("./out/TimeAlpha_parameters.pdf");
+	summary -> PrintCorrelationPlot("./out/TimeAlpha_correlation.pdf");
+	summary -> PrintCorrelationMatrix("./out/TimeAlpha_correlationMatrix.pdf");
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	m -> PrintResults("TimeAlpha_results.txt");
+	m -> PrintResults("./out/TimeAlpha_results.txt");
 
 	delete m;
 

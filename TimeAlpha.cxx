@@ -39,10 +39,8 @@ using namespace gada;
 TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
 	fDetectorType = kUNKNOWN; // all detectors
-	fDetectorEnriched = true;
-//	fModel = OnlyLin;
-//	fModel = OnlyExp;
-	fModel = LinAndExp;
+	fDetectorEnriched = kUNKNOWN; // all detectors
+	fModel = LinAndExp; // OnlyLin, OnlyExp
 
 	fNBins = 100;
 	fHMaximum = 0.;
@@ -61,13 +59,12 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 
 int TimeAlpha::DefineParametersAndPriors()
 {
-	// constructor
-	// define parameters here. For example:
+	// define parameters
 	AddParameter( "constant", 0., 4. );
 	AddParameter( "amplitude", 0., 5. );
 	AddParameter( "halflife", 137., 140. );
 
-	// and set priors, if using built-in priors. For example:
+	// set priors
 	switch ( fModel )
 	{
 		case LinAndExp:
@@ -470,80 +467,40 @@ double TimeAlpha::EstimatePValue()
 
 
 // ---------------------------------------------------------
-void TimeAlpha::WriteOutput( string outputfilename )
+void TimeAlpha::WriteOutput( string outputfilename, double corr )
 {
-	// Write Livetime Fraction
+	const vector<double> BestFitMarginalized = GetBestFitParametersMarginalized();
 
-	// Write Data
+	const std::vector<double> & BestFitGlobal = GetBestFitParameters();
+	const std::vector<double> & BestFitGlobalErrors = GetBestFitParameterErrors();
 
-	// Write Model
-	const vector<double> BestFit = GetBestFitParametersMarginalized();
+	// only uncertainties on contant and amplitude parameters are taken into account
+	TF1 * MF = new TF1( "MF", "[0]+[1]*exp(-x*log(2.)/[2])", fHMinimum, fHMaximum );
+	MF -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2) );
 
-	vector<double> * BestFitParameters = new vector<double>;
-	vector<double> * BestFitParameterErrors1s = new vector<double>;
-//	vector<double> * BestFitParameterErrors2s = new vector<double>;
-//	vector<double> * BestFitParameterErrors3s = new vector<double>;
+	TF1 * MF_up = new TF1( "MF_up", "[0]+[1]*exp(-x*log(2.)/[2]) + sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4]
+								     + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
+	MF_up -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2),
+		BestFitGlobalErrors->at(0), BestFitGlobalErrors->at(1), corr );
 
-	for( uint i = 0; i < GetNParameters(); i++ )
-	{
-		BCH1D * parHisto = MCMCGetH1Marginalized( i );
+	TF1 * MF_low = new TF1( "MF_low", "[0]+[1]*exp(-x*log(2.)/[2]) - sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4]
+								     + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
+	MF_low -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2),
+		BestFitGlobalErrors->at(0), BestFitGlobalErrors->at(1), corr );
 
-		double value =  parHisto->GetMode();
+	TCanvas * c = new TCanvas();
+	fHTimeAlpha -> Draw();
 
-		BestFitParameters -> push_back( value );
 
-		double xmin, xmax;
-	    parHisto->GetSmallestInterval( xmin, xmax, 0.683 );
-	    BestFitParameterErrors1s -> push_back( (xmax - xmin) / 2. );
+	MF -> Draw();
+	MF_up -> Draw();
+	MF_low -> Draw();
 
-	    cout << "Par0 " << value << "(" << xmin << "," << xmax << ")" << endl;
-
-	    /*
-	    parHisto->GetSmallestInterval( xmin, xmax, 0.954 );
-	    BestFitParameterErrors2s -> push_back( (xmax - xmin) / 2. );
-	    parHisto->GetSmallestInterval( xmin, xmax, 0.997 );
-	    BestFitParameterErrors3s -> push_back( (xmax - xmin) / 2. );
-	    */
-	}
-
-	TF1 * modelfunction = new TF1( "modelfunction", "[0]+[1]*exp(-x*log(2.)/[2])", fHMinimum, fHMaximum );
-	modelfunction -> SetParameters( BestFitParameters->at(0), BestFitParameters->at(1), BestFitParameters->at(2) );
-	modelfunction -> SetParError( 0, BestFitParameterErrors1s->at(0) );
-	modelfunction -> SetParError( 1, BestFitParameterErrors1s->at(1) );
-	modelfunction -> SetParError( 2, BestFitParameterErrors1s->at(2) );
-
-	cout << fHMinimum << " " << fHMaximum << endl;
-	cout << BestFitParameters->at(0) << " " <<	BestFitParameters->at(1) << " "<<	BestFitParameters->at(2) << " " << endl;
-	cout << BestFitParameterErrors1s->at(0) << " " <<	BestFitParameterErrors1s->at(1) << " "<<	BestFitParameterErrors1s->at(2) << " " << endl;
-
-	TCanvas * c = new TCanvas("c1");
-	modelfunction -> Draw();
-
-	TH1D * expected = new TH1D( "histo_model", "histo_model", fNBins,  fHMinimum, fHMaximum );
-
-	double BinWidth = (fHMaximum - fHMinimum) / fNBins;
-
-	for( int b = 0; b < fNBins; b++)
-	{
-		double t1 = fHMinimum + b * BinWidth;
-		double t2 = t1 + BinWidth;
-
-		double tau = BestFitParameters->at(2) / log(2.);
-
-		double lambda = BestFitParameters->at(0) * BinWidth
-				- BestFitParameters->at(1) * tau
-				* ( exp( -t2/tau ) - exp( -t1/tau ) );
-		lambda *= fVLiveTimeFraction.at(b);
-
-		expected -> SetBinContent( b+1, lambda );
-	}
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
-	c -> Write();
-	modelfunction -> Write();
-	fHTimeAlpha -> Write();
-	fHLiveTimeFraction -> Write();
-	expected -> Write();
+	MF -> Write();
+	MF_up -> Write();
+	MF_low -> Write();
 	out -> Close();
 
 	return;

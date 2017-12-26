@@ -251,11 +251,19 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 			TString dDetName = det -> GetDetectorTable() -> at( det->GetID() ) -> GetName();
 
 			if( !RunConf -> IsOn( d ) ) continue;
+
+			// fit of single detector: accept only this detector namespace
+			// fit of enrBEGe detectors: match Type and Enriched and exclude GD91C
+			// fit of enrCoax detectors: -"- and exclude ANG4
+			// fit of natCoax det: -"- exlude GTF45
 			if( fSingleDetectorFit ){ if( dDetName != fDataSet ) continue; }
 			else if( fDetectorType != kUNKNOWN && fDetectorEnriched != kUNKNOWN )
 			{
 				if( dType != fDetectorType ) continue;
 				if( dIsEnriched != fDetectorEnriched ) continue;
+				if( fDataSet == "enrBEGe" && dDetName == "GD91C" ) continue;
+				if( fDataSet == "enrCoax" && dDetName == "ANG4" )  continue;
+				if( fDataSet == "natCoax" && dDetName == "GTF45" ) continue;
 			}
 
 			if( ( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500. )

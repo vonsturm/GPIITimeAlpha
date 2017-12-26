@@ -471,22 +471,20 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr )
 {
 	const vector<double> BestFitMarginalized = GetBestFitParametersMarginalized();
 
-	const std::vector<double> & BestFitGlobal = GetBestFitParameters();
-	const std::vector<double> & BestFitGlobalErrors = GetBestFitParameterErrors();
+	const std::vector<double> BestFitGlobal = GetBestFitParameters();
+	const std::vector<double> BestFitGlobalErrors = GetBestFitParameterErrors();
 
 	// only uncertainties on contant and amplitude parameters are taken into account
 	TF1 * MF = new TF1( "MF", "[0]+[1]*exp(-x*log(2.)/[2])", fHMinimum, fHMaximum );
-	MF -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2) );
+	MF -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2) );
 
-	TF1 * MF_up = new TF1( "MF_up", "[0]+[1]*exp(-x*log(2.)/[2]) + sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4]
-								     + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
-	MF_up -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2),
-		BestFitGlobalErrors->at(0), BestFitGlobalErrors->at(1), corr );
+	TF1 * MF_up = new TF1( "MF_up", "[0]+[1]*exp(-x*log(2.)/[2]) + sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4] + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
+	MF_up -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2),
+		BestFitGlobalErrors.at(0), BestFitGlobalErrors.at(1), corr );
 
-	TF1 * MF_low = new TF1( "MF_low", "[0]+[1]*exp(-x*log(2.)/[2]) - sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4]
-								     + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
-	MF_low -> SetParameters( BestFitGlobal->at(0), BestFitGlobal->at(1), BestFitGlobal->at(2),
-		BestFitGlobalErrors->at(0), BestFitGlobalErrors->at(1), corr );
+	TF1 * MF_low = new TF1( "MF_low", "[0]+[1]*exp(-x*log(2.)/[2]) - sqrt( [3]*[3] + exp(-x*log(2.)/[2])*exp(-x*log(2.)/[2])*[4]*[4] + 2*exp(-x*log(2.)/[2])*[3]*[4]*[5] )", fHMinimum, fHMaximum );
+	MF_low -> SetParameters( BestFitGlobal.at(0), BestFitGlobal.at(1), BestFitGlobal.at(2),
+		BestFitGlobalErrors.at(0), BestFitGlobalErrors.at(1), corr );
 
 	TCanvas * c = new TCanvas();
 	fHTimeAlpha -> Draw();

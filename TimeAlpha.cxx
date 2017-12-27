@@ -61,7 +61,7 @@ TimeAlpha::TimeAlpha( const char * name ) : BCModel(name) {
 int TimeAlpha::DefineParametersAndPriors()
 {
 	// define parameters
-	AddParameter( "constant", 0., 4. );
+	AddParameter( "constant", 0., 2. );
 	AddParameter( "amplitude", 0., 5. );
 	AddParameter( "halflife", 137., 140. );
 
@@ -262,7 +262,7 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 				if( dIsEnriched != fDetectorEnriched ) continue;
 				if( fDataSet == "enrBEGe" && dDetName == "GD91C" ) continue;
 				if( fDataSet == "enrCoax" && dDetName == "ANG4" )  continue;
-				if( fDataSet == "natCoax" && dDetName == "GTF45" ) continue;
+				if( fDataSet == "natCoax" && dDetName == "GTF45_2" ) continue;
 			}
 
 			if( ( multiplicity == 1 && !failedFlag_isPhysical -> at( d ) && energy -> at( d ) > 3500. )
@@ -508,8 +508,8 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	l -> AddEntry( copyHTimeAlpha, "data", "pl" );
 	l -> AddEntry( MF, "model", "l" );
 	l -> AddEntry( MF, "f(t) = C + N exp(#frac{-ln(2) t}{T_{1/2}}", "" );
-	l -> AddEntry( MF, Form("C = %.1f +- %.1fcts/day", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
-	l -> AddEntry( MF, Form("A = %.1f +- %.1fcts/day", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
+	l -> AddEntry( MF, Form("C = (%.1f +- %.1f) cts/live-day", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
+	l -> AddEntry( MF, Form("A = (%.1f +- %.1f) cts/live-day", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
 	l -> SetLineColor( kWhite );
 
 	const string title = Form( "Time dependence of alpha events: %s", fDataSet.c_str() );

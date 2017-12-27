@@ -506,8 +506,8 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	TLegend * l = new TLegend( 0.65, 0.7, 0.85, 0.9 );
 	l -> AddEntry( copyHTimeAlpha, "data", "pl" );
 	l -> AddEntry( MF, "model", "l" );
-	l -> AddEntry( MF, Form("const = %.1f +- %.1f", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
-	l -> AddEntry( MF, Form("amplitude = %.1f +- %.1f", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
+	l -> AddEntry( MF, Form("const = %.1f +- %.1fcts/day", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
+	l -> AddEntry( MF, Form("amplitude = %.1f +- %.1fcts/day", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
 	l -> SetLineColor( kWhite );
 
 	TCanvas * c = new TCanvas( "TimeAlpha", Form( "Time dependence of alpha events: %s", fDataSet.c_str() ), 1000, 500 );

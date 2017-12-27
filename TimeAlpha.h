@@ -62,10 +62,11 @@ class TimeAlpha : public BCModel {
         else if( set == "natCoax" || set.find("GTF") == 0 )
             { fDetectorType = kIsCOAX; fDetectorEnriched = false; }
         else if( set == "all"){ fDetectorType = kUNKNOWN; fDetectorType = kUNKNOWN; }
-        else if( set.find("GD") == 0 || set.find("ANG") == 0 ||
-                 set.find("RG") == 0 || set.find("GTF") == 0 )
+        if( set.find("GD") == 0 || set.find("ANG") == 0 ||
+            set.find("RG") == 0 || set.find("GTF") == 0 )
         {
             fSingleDetectorFit = true;
+            std::cout << "Single detector fit set to: " << fSingleDetectorFit << endl; 
         }
         else
             std::cout << "Data set unknown " << set << std::endl;

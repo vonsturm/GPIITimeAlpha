@@ -66,7 +66,7 @@ class TimeAlpha : public BCModel {
             set.find("RG") == 0 || set.find("GTF") == 0 )
         {
             fSingleDetectorFit = true;
-            std::cout << "Single detector fit set to: " << fSingleDetectorFit << endl; 
+            std::cout << "Single detector fit set to: " << fSingleDetectorFit << std::endl;
         }
         else
             std::cout << "Data set unknown " << set << std::endl;

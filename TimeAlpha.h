@@ -69,32 +69,34 @@ class TimeAlpha : public BCModel {
         }
         else
             std::cout << "Data set unknown " << set << std::endl;
-    }
+    };
 
-	void SetDetectorType( DetectorType_t det ){ fDetectorType = det; };
+    std::string GetDataSet(){ return fDataSet; };
+    //
+    void SetDetectorType( DetectorType_t det ){ fDetectorType = det; };
     DetectorType_t GetDetectorType(){ return fDetectorType; };
-
+    //
     void SetDetectorEnriched( bool b ){ fDetectorEnriched = b; };
     bool GetDetectorEnriched(){ return fDetectorEnriched; };
+    //
+    void SetModel( tModel model ){ fModel = model; };
 
-	void SetModel( tModel model ){ fModel = model; };
+    void SetModelName( std::string name ){ fModelName = name; };
+    std::string GetModelName( tModel model ){ return fModelName; };
 
-	void SetModelName( std::string name ){ fModelName = name; };
-	std::string GetModelName( tModel model ){ return fModelName; };
+    void SetNDetectors( int n ){ fNDetectors = n; };
+    int GetNDetectors(){ return fNDetectors; };
 
-	void SetNDetectors( int n ){ fNDetectors = n; };
-	int GetNDetectors(){ return fNDetectors; };
+    // Methods to overload, see file TimeAlpha.cxx
+    double LogLikelihood(const std::vector<double> & parameters);
+    double EstimatePValue();
 
-	// Methods to overload, see file TimeAlpha.cxx
-	double LogLikelihood(const std::vector<double> & parameters);
-	double EstimatePValue();
-
-	// double LogAPrioriProbability(const std::vector<double> & parameters);
+    // double LogAPrioriProbability(const std::vector<double> & parameters);
 
     // default is beginning of run 54
-	void WriteOutput( std::string outputfilename, double corr = 0.,
-            std::string timeformat = "%d/%m/%y%F2016-01-25 16:30:28" );
-	void WriteDistributions();
+    void WriteOutput( std::string outputfilename, double corr = 0.,
+        std::string timeformat = "%d/%m/%y%F2016-01-25 16:30:28" );
+    void WriteDistributions();
 
  private:
 

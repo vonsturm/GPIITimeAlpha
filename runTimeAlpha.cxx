@@ -57,7 +57,7 @@ int main( int argc, char* argv[]  )
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
 	m -> SetFittingDataSet( data_set );
-	m -> SetBinningInDays( 20 );
+	m -> SetBinningInDays( 40 );
 
 	// NBinsHistograms( 180, 0., 180. );
 	m -> ReadDataPhaseII( keylist );

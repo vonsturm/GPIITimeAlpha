@@ -51,7 +51,8 @@ int main( int argc, char* argv[]  )
 	BCAux::SetStyle();
 
 	// open log file
-	BCLog::OpenLog( Form( "./out/%s_log.txt", data_set.c_str() ), BCLog::detail, BCLog::detail );
+	const string logfilename = Form( "./out/%s_log.txt", data_set.c_str() );
+	BCLog::OpenLog( logfilename.c_str(), BCLog::detail, BCLog::detail );
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
@@ -94,22 +95,29 @@ int main( int argc, char* argv[]  )
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots( Form( "./out/%s_TimeAlpha_update.pdf", data_set.c_str() ) );
-	summary -> PrintParameterPlot( Form( "./out/%s_TimeAlpha_parameters.pdf", data_set.c_str() ) );
-	summary -> PrintCorrelationPlot( Form( "./out/%s_TimeAlpha_correlation.pdf", data_set.c_str() ) );
-	summary -> PrintCorrelationMatrix( Form( "./out/%s_TimeAlpha_correlationMatrix.pdf", data_set.c_str() ) );
+	const string updatefilename = Form( "./out/%s_TimeAlpha_update.pdf", data_set.c_str() );
+	const string paramfilename = Form( "./out/%s_TimeAlpha_parameters.pdf", data_set.c_str() );
+	const string corrfilename = Form( "./out/%s_TimeAlpha_correlation.pdf", data_set.c_str() );
+	const string corrmatrixfilename = Form( "./out/%s_TimeAlpha_correlationMatrix.pdf", data_set.c_str() );
+
+	summary -> PrintKnowledgeUpdatePlots( updatefilename.c_str() );
+	summary -> PrintParameterPlot( paramfilename.c_str() );
+	summary -> PrintCorrelationPlot( corrfilename.c_str() );
+	summary -> PrintCorrelationMatrix( corrmatrixfilename.c_str() );
 
 	double corr = m -> GetMarginalized(0, 1) -> GetHistogram() -> GetCorrelationFactor();
 
 	cout << "Correlation factor between constant and amplitude parameters " << corr << endl;
 
-	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", data_set.c_str() ), corr );
+	const string modelfilename = Form("./out/%s_TimeAlpha_model.root", data_set.c_str() );
+	m -> WriteOutput( modelfilename.c_str(), corr );
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	m -> PrintResults( Form( "./out/%s_TimeAlpha_results.txt", data_set.c_str() ) );
+	const string resultsfilename = Form( "./out/%s_TimeAlpha_results.txt", data_set.c_str() );
+	m -> PrintResults( resultsfilename.c_str() );
 
 	BCLog::OutSummary("Exiting");
 

@@ -286,7 +286,8 @@ int TimeAlpha::ReadDataPhaseII( string keylist )
 	fHLiveTimeFraction -> Scale( 1./( TPFrequency * fHLiveTimeFraction -> GetBinWidth( 1 ) ) );
 	fHLiveTimeFraction_fine -> Scale( 1./( TPFrequency * fHLiveTimeFraction_fine -> GetBinWidth( 1 ) ) );
 
-	TFile * out = new TFile( Form( "./out/%s_TimeAlpha_Data.root", fDataSet.c_str() ), "RECREATE" );
+	const string outfilename = Form( "./out/%s_TimeAlpha_Data.root", fDataSet.c_str() );
+	TFile * out = new TFile( outfilename.c_str(), "RECREATE" );
 	fHTimeAlpha -> Write();
 	fHTimeAlpha_fine -> Write();
 	fHLiveTimeFraction -> Write();
@@ -510,7 +511,8 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	l -> AddEntry( MF, Form("amplitude = %.1f +- %.1fcts/day", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
 	l -> SetLineColor( kWhite );
 
-	TCanvas * c = new TCanvas( "TimeAlpha", Form( "Time dependence of alpha events: %s", fDataSet.c_str() ), 1000, 500 );
+	const string title = Form( "Time dependence of alpha events: %s", fDataSet.c_str() );
+	TCanvas * c = new TCanvas( "TimeAlpha", title.c_str(), 1000, 500 );
 	copyHTimeAlpha -> Draw();
 	MF -> Draw("same");
 	MF_up -> Draw("same");
@@ -531,7 +533,8 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 // ---------------------------------------------------------
 void TimeAlpha::WriteDistributions()
 {
-	TFile * test = new TFile( Form("./out/%s_TimeAlphas_posteriors.root", fDataSet.c_str() ), "RECREATE" );
+	const string filename = Form("./out/%s_TimeAlphas_posteriors.root", fDataSet.c_str() );
+	TFile * test = new TFile( filename.c_str(), "RECREATE" );
 
 	for( uint i = 0; i < GetNParameters(); i++ )
 	{

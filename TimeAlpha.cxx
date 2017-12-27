@@ -12,16 +12,15 @@
 #include <cmath>
 #include <algorithm>
 
-#include "TimeAlpha.h"
-
-#include <BAT/BCMath.h>
-#include <BAT/BCH1D.h>
-
 #include "TChain.h"
 #include "TH1D.h"
 #include "TFile.h"
 #include "TF1.h"
 #include "TCanvas.h"
+#include "TLegend.h"
+
+#include "BAT/BCMath.h"
+#include "BAT/BCH1D.h"
 
 // gerda-ada includes
 #include "FileMap.h"
@@ -31,6 +30,8 @@
 #include "GERunConfigurationManager.hh"
 
 #include "ProgressBar.h"
+
+#include "TimeAlpha.h"
 
 using namespace std;
 using namespace gada;
@@ -502,11 +503,19 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	copyHTimeAlpha -> GetYaxis() -> SetNdivisions( 7 + 100*5 + 10000*0 );
 	copyHTimeAlpha -> GetYaxis() -> SetTitleOffset( 0.7 );
 
+	TLegend * l = new TLegend( 0.65, 0.7, 0.85, 0.9 );
+	l -> AddEntry( copyHTimeAlpha, "data", "pl" );
+	l -> AddEntry( MF, "model", "l" );
+	l -> AddEntry( MF, Form("const = %.1f +- %.1f", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
+	l -> AddEntry( MF, Form("amplitude = %.1f +- %.1f", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
+	l -> SetLineColor( kWhite );
+
 	TCanvas * c = new TCanvas( "TimeAlpha", Form( "Time dependence of alpha events: %s", fDataSet.c_str() ), 1000, 500 );
 	copyHTimeAlpha -> Draw();
 	MF -> Draw("same");
 	MF_up -> Draw("same");
 	MF_low -> Draw("same");
+	l -> Draw();
 
 	TFile * out = new TFile( outputfilename.c_str(), "RECREATE" );
 	c -> Write();

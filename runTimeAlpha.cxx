@@ -20,15 +20,22 @@ void Usage();
 int main( int argc, char* argv[]  )
 {
 	string keylist;
+	string data_set = "enrBEGe"; // enrBEGe, enrCoax, natCoax, all, single detector
 	string precision = "kMedium";
 
-	if( argc == 2 ) keylist = argv[1];
+	if( argc == 2 )	keylist = argv[1];
 	else if( argc == 3 )
 	{
 		keylist = argv[1];
-		precision = argv[2];
+		data_set = argv[2];
 	}
-	else if( argc > 3 )
+	else if( argc == 4 )
+	{
+		keylist = argv[1];
+		data_set = argv[2];
+		precision = argv[3];
+	}
+	else if( argc > 4 )
 	{
 		cout << "Too many parameters" << endl;
 		Usage();
@@ -48,7 +55,7 @@ int main( int argc, char* argv[]  )
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
-	m -> SetFittingDataSet( "enrBEGe" ); // enrBEGe, enrCoax, natCoax, all, single detector
+	m -> SetFittingDataSet( data_set );
 	m -> SetBinningInDays( 20 );
 
 	// NBinsHistograms( 180, 0., 180. );
@@ -121,8 +128,10 @@ int main( int argc, char* argv[]  )
 
 void Usage()
 {
-
-
+	cout << "Use for Time Alpha fitting " << endl;
+	cout << "\t runTimeAlpha keylist [data-set|enrBEGe] [precision|kMedium]" << endl;
+	cout << "\t data-set: enrBEGe, enrCoax, natCoax, all, single-detector-name " << endl;
+	cout << "\t precision: kLow, kMedium, kHigh, kVeryHigh" << endl;
 
 	return;
 }

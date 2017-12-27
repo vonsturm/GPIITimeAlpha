@@ -4,6 +4,7 @@
 *.o
 *.root
 *log*.txt
+*result*.txt
 *.pdf
 *.svg
 

@@ -507,7 +507,7 @@ void TimeAlpha::WriteOutput( string outputfilename, double corr, string timeform
 	TLegend * l = new TLegend( 0.65, 0.7, 0.85, 0.9 );
 	l -> AddEntry( copyHTimeAlpha, "data", "pl" );
 	l -> AddEntry( MF, "model", "l" );
-	l -> AddEntry( MF, "f(t) = C + N exp(#frac{-ln(2) t}{T_{1/2}}", "" );
+	l -> AddEntry( MF, "f(t) = C + N exp#left(#frac{-ln(2) t}{T_{1/2}}#right)", "" );
 	l -> AddEntry( MF, Form("C = (%.1f +- %.1f) cts/live-day", BestFitGlobal.at(0), BestFitGlobalErrors.at(0)), "" );
 	l -> AddEntry( MF, Form("A = (%.1f +- %.1f) cts/live-day", BestFitGlobal.at(1), BestFitGlobalErrors.at(1)), "" );
 	l -> SetLineColor( kWhite );

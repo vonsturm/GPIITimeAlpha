@@ -103,7 +103,7 @@ int main( int argc, char* argv[]  )
     // double corr = summary -> fCorrCoeff.at(index);
 	double corr = m -> GetMarginalized(0, 1) -> GetHistogram() -> GetCorrelationFactor();
 
-	cout << "Correlation factor between constant and amplitude parameters" << endl;
+	cout << "Correlation factor between constant and amplitude parameters " << corr << endl;
 
 	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", m->GetDataSet().c_str() ), corr );
 

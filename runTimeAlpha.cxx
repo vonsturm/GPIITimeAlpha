@@ -51,7 +51,7 @@ int main( int argc, char* argv[]  )
 	BCAux::SetStyle();
 
 	// open log file
-	BCLog::OpenLog( "log.txt", BCLog::detail, BCLog::detail );
+	BCLog::OpenLog( Form( "./out/%s_log.txt", data_set.c_str() ), BCLog::detail, BCLog::detail );
 
 	// create new TimeAlpha object
 	TimeAlpha * m = new TimeAlpha( "TimeAlpha" );
@@ -94,33 +94,29 @@ int main( int argc, char* argv[]  )
 
 	// create a new summary tool object, to print change from prior -> posterior
 	BCSummaryTool * summary = new BCSummaryTool(m);
-	summary -> PrintKnowledgeUpdatePlots( Form( "./out/%s_TimeAlpha_update.pdf", m->GetDataSet().c_str() ) );
-	summary -> PrintParameterPlot( Form( "./out/%s_TimeAlpha_parameters.pdf", m->GetDataSet().c_str() ) );
-	summary -> PrintCorrelationPlot( Form( "./out/%s_TimeAlpha_correlation.pdf", m->GetDataSet().c_str() ) );
-	summary -> PrintCorrelationMatrix( Form( "./out/%s_TimeAlpha_correlationMatrix.pdf", m->GetDataSet().c_str() ) );
+	summary -> PrintKnowledgeUpdatePlots( Form( "./out/%s_TimeAlpha_update.pdf", data_set.c_str() ) );
+	summary -> PrintParameterPlot( Form( "./out/%s_TimeAlpha_parameters.pdf", data_set.c_str() ) );
+	summary -> PrintCorrelationPlot( Form( "./out/%s_TimeAlpha_correlation.pdf", data_set.c_str() ) );
+	summary -> PrintCorrelationMatrix( Form( "./out/%s_TimeAlpha_correlationMatrix.pdf", data_set.c_str() ) );
 
-	// int index = 0 * npar + 1;
-    // double corr = summary -> fCorrCoeff.at(index);
 	double corr = m -> GetMarginalized(0, 1) -> GetHistogram() -> GetCorrelationFactor();
 
 	cout << "Correlation factor between constant and amplitude parameters " << corr << endl;
 
-	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", m->GetDataSet().c_str() ), corr );
+	m -> WriteOutput( Form("./out/%s_TimeAlpha_model.root", data_set.c_str() ), corr );
 
 	// calculate p-value
 //	m -> CalculatePValue( m->GetBestFitParameters() );
 
 	// print results of the analysis into a text file
-	m -> PrintResults( Form( "./out/%s_TimeAlpha_results.txt", m->GetDataSet().c_str() ) );
-
-	delete m;
-
-	// delete summary;
+	m -> PrintResults( Form( "./out/%s_TimeAlpha_results.txt", data_set.c_str() ) );
 
 	BCLog::OutSummary("Exiting");
 
 	// close log file
 	BCLog::CloseLog();
+	delete m;
+	delete summary;
 
 	return 0;
 }
